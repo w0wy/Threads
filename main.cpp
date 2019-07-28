@@ -5,6 +5,9 @@
 #include <boost/interprocess/mapped_region.hpp>
 #include <atomic>
 
+#include "SyncUtils.h"
+#include "Logger.h"
+
 std::mutex mutex;
 std::atomic<bool> scopedFlag;
 std::atomic<bool> memoryReady;
@@ -19,6 +22,7 @@ void shared_cout(std::string msg, int id)
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 void normalThread()
 {
+    logging::Logger::getLogger()->log(std::string("shit log11111111"));
     for (auto i=1; i <= 10; i++) {
         shared_cout("Called from normalThread! ", i);
     }
@@ -52,6 +56,7 @@ void normalThread()
     for (int i = 0; i <= 2; i++) {
         std::cout << "reinterpret - " << *msgs++ << "\n";
     }
+
     std::memcpy(region.get_address(), ptr, sizeof(ptr));
     std::cout << sizeof(ptr);
 
@@ -109,6 +114,8 @@ void *posixThread(void *)
 
 void *secondPosixThread(void *)
 {
+    logging::Logger::getLogger()->log(std::string("shit log232131"));
+    
     std::lock_guard<std::mutex> guard(mutex);
     for (auto i=0; i<=10;i++)
     {
@@ -120,8 +127,8 @@ int main() {
 
     std::thread t1(normalThread);
 
-    pthread_t t2;
-    pthread_create(&t2, NULL, posixThread, NULL);
+    //pthread_t t2;
+    //pthread_create(&t2, NULL, posixThread, NULL);
 
     pthread_t t3;
     pthread_create(&t3, NULL, secondPosixThread, NULL);
@@ -130,7 +137,7 @@ int main() {
         shared_cout("Main thread!", i);
 
     pthread_join(t3, NULL);
-    pthread_join(t2, NULL);
+    //pthread_join(t2, NULL);
     t1.join();
     return 0;
 }
