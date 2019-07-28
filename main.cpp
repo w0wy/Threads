@@ -22,7 +22,8 @@ void shared_cout(std::string msg, int id)
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 void normalThread()
 {
-    logging::Logger::getLogger()->log(std::string("shit log11111111"));
+    logging::Logger::getLogger()->log(std::string("shit log11111111\n"));
+
     for (auto i=1; i <= 10; i++) {
         shared_cout("Called from normalThread! ", i);
     }
@@ -82,6 +83,8 @@ void normalThread()
         std::cout << "scoped flag - in mutex\n ";
         sleep(1);
         mutex.unlock();
+
+        logging::Logger::getLogger()->log(std::string("scoped log"));
     }
 }
 #pragma clang diagnostic pop
@@ -115,12 +118,15 @@ void *posixThread(void *)
 void *secondPosixThread(void *)
 {
     logging::Logger::getLogger()->log(std::string("shit log232131"));
-    
+
     std::lock_guard<std::mutex> guard(mutex);
     for (auto i=0; i<=10;i++)
     {
         std::cout << "New damn posix thread : " << i << "\n";
     }
+
+
+    logging::Logger::getLogger()->log(std::string("logging stuff again"));
 }
 
 int main() {
