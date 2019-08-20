@@ -10,7 +10,7 @@ public:
     SupervisorDaemon() = default;
     ~SupervisorDaemon() = default;
 
-    void operator()(int x);
+    void operator()();
 };
 
 

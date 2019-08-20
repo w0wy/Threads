@@ -6,20 +6,43 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <thread>
-
-#include "Logger.h"
-#include "SyncUtils.h"
+#include <boost/interprocess/shared_memory_object.hpp>
+#include <boost/interprocess/mapped_region.hpp>
 
 #include "SupervisorDaemon.h"
+#include "Logger.h"
 
-std::mutex localMutex_;
+static Logger* logger_ = Logger::getLogger();
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
-void SupervisorDaemon::operator()(int x)
+void SupervisorDaemon::operator()()
 {
-    logging::Logger::getLogger()->log(std::string("test the damned logger"));
-    //syncUtils::shared_cout(localMutex_, "SupervisorDaemon started!");
+    logger_->setTag(typeid(this).name());
+
+    logger_->print("Daemon started. Will allocate shared memory!");
+    logger_->print("Preparing remover.");
+    struct shm_remove
+    {
+        shm_remove() {
+            boost::interprocess::shared_memory_object::remove("shared_memory");}
+        ~shm_remove(){
+            boost::interprocess::shared_memory_object::remove("shared_memory");}
+    } remover;
+    logger_->print("Remover all set.");
+
+    logger_->print("Preparing shared memory object and mapped region.");
+    boost::interprocess::shared_memory_object shared_memory(
+            boost::interprocess::create_only,
+            "shared_memory",
+            boost::interprocess::read_write);
+    shared_memory.truncate(64 * 1024);
+
+    boost::interprocess::mapped_region region(shared_memory, boost::interprocess::read_write);
+    logger_->print("Shared memory and mapped region all set.");
+
+    logger_->print("Will open all child processes.");
+    //pid_t
 
     while(true)
     {
@@ -28,13 +51,9 @@ void SupervisorDaemon::operator()(int x)
 }
 #pragma clang diagnostic pop
 
-
 int main()
 {
-    syncUtils::shared_cout(localMutex_, "Got in main!");
     pid_t pid, sid;
-
-    logging::Logger::getLogger()->log(std::string("shit log"));
 
     // Fork parent process
     pid = fork();
@@ -62,13 +81,11 @@ int main()
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
 
-    logging::Logger::getLogger()->log(std::string("fucking logger"));
-
     // Creating daemon
     SupervisorDaemon daemon;
 
     // Starting daemon
-    daemon(1);
+    daemon();
 
     return 0;
 }

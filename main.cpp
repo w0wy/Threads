@@ -22,12 +22,6 @@ void shared_cout(std::string msg, int id)
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 void normalThread()
 {
-    logging::Logger::getLogger()->log(std::string("shit log11111111\n"));
-
-    for (auto i=1; i <= 10; i++) {
-        shared_cout("Called from normalThread! ", i);
-    }
-
     struct shm_remove
     {
         shm_remove() {

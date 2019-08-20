@@ -4,7 +4,7 @@ project(Threads)
 set(CMAKE_CXX_STANDARD 11)
 
 set(SOURCE_FILES main.cpp SyncUtils.h Logger.cpp Logger.h)
-set(SOURCE_FILES_DAEMON SupervisorDaemon.cpp SupervisorDaemon.h SyncUtils.h Logger.cpp Logger.h)
+set(SOURCE_FILES_DAEMON SupervisorDaemon.cpp SupervisorDaemon.h Logger.cpp Logger.h)
 
 set(BOOST_ROOT E:/boost_1_70_0/)
 set(BOOST_INCLUDEDIR E:/boost_1_70_0/include/)

@@ -10,9 +10,7 @@
 #include <fstream>
 #include <mutex>
 
-namespace logging {
-
-    class Logger {
+class Logger {
     private:
         Logger() = default;
         Logger &operator=(const Logger &);
@@ -22,12 +20,14 @@ namespace logging {
         static Logger *this_;
         static std::ofstream logFileStream_;
         static std::mutex locker_;
+        static std::string tag_;
     public:
-        void log(const std::string&);
+        void print(const std::string&);
         Logger& operator<<(const std::string&);
+
+        void setTag(const std::string&);
 
         static Logger* getLogger();
     };
-}
 
 #endif //THREADS_LOGGER_H
