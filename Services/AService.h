@@ -13,7 +13,11 @@ public:
     AService()
     {
         static Logger* logger_ = Logger::getLogger();
-        logger_->setTag(typeid(this).name());
+        std::string fullTag = typeid(this).name();
+//        FIXME not working as it should
+//        fullTag += "+";
+//        fullTag += std::to_string((int)getpid());
+        logger_->setTag(fullTag);
 
         logger_->print("Service base initialized");
     }

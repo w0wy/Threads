@@ -15,7 +15,7 @@ Logger* Logger::getLogger() {
     if (this_ == nullptr)
     {
         this_ = new Logger();
-        logFileStream_.open(logFileName_.c_str(), std::ofstream::out | std::ofstream::app);
+        logFileStream_.open(logFileName_.c_str(), std::ofstream::out); // | std::ofstream::app);
     }
 
     return this_;

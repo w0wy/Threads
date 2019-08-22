@@ -5,7 +5,6 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <w32api/lm.h>
 
 #include "SupervisorDaemon.h"
 #include "Services/Service1.h"
@@ -20,7 +19,11 @@ Logger* SupervisorDaemon::logger_ = Logger::getLogger();
 
 SupervisorDaemon::SupervisorDaemon()
 {
-    logger_->setTag(typeid(this).name());
+    std::string fullTag = typeid(this).name();
+//    FIXME not working as it should
+//    fullTag += "+";
+//    fullTag += std::to_string((int)getpid());
+    logger_->setTag(fullTag);
 }
 
 void SupervisorDaemon::operator()()
@@ -40,8 +43,9 @@ void SupervisorDaemon::operator()()
     // to do more modular
     // eg: void forkProcess(const string name) or
     // void forkProcess(const EProcessType type)
-    pid_t pid = fork();
-    pid_t sid;
+    pid_t pid, sid;
+
+    pid = fork();
 
     if (pid < 0) { exit(EXIT_FAILURE); }
 
@@ -50,7 +54,6 @@ void SupervisorDaemon::operator()()
         sid = setsid();
         if (sid < 0) { exit(EXIT_FAILURE); }
 
-        // TODO maybe find a way to set process name
         Service1 service;
         service.run();
     }
@@ -62,7 +65,7 @@ void SupervisorDaemon::operator()()
 }
 #pragma clang diagnostic pop
 
-int main()
+int main(int argc, char * argv[])
 {
     pid_t pid, sid;
 
