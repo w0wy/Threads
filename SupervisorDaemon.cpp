@@ -5,44 +5,55 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <thread>
-#include <boost/interprocess/shared_memory_object.hpp>
-#include <boost/interprocess/mapped_region.hpp>
+#include <w32api/lm.h>
 
 #include "SupervisorDaemon.h"
-#include "Logger.h"
+#include "Services/Service1.h"
+#include "MemoryHelpers.h"
 
-static Logger* logger_ = Logger::getLogger();
+#include <stdlib.h>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
-void SupervisorDaemon::operator()()
+
+Logger* SupervisorDaemon::logger_ = Logger::getLogger();
+
+SupervisorDaemon::SupervisorDaemon()
 {
     logger_->setTag(typeid(this).name());
+}
 
+void SupervisorDaemon::operator()()
+{
     logger_->print("Daemon started. Will allocate shared memory!");
     logger_->print("Preparing remover.");
-    struct shm_remove
-    {
-        shm_remove() {
-            boost::interprocess::shared_memory_object::remove("shared_memory");}
-        ~shm_remove(){
-            boost::interprocess::shared_memory_object::remove("shared_memory");}
-    } remover;
+    shm_remover memRemover;
     logger_->print("Remover all set.");
 
     logger_->print("Preparing shared memory object and mapped region.");
-    boost::interprocess::shared_memory_object shared_memory(
-            boost::interprocess::create_only,
-            "shared_memory",
-            boost::interprocess::read_write);
-    shared_memory.truncate(64 * 1024);
-
-    boost::interprocess::mapped_region region(shared_memory, boost::interprocess::read_write);
+    setMemoryRegion("shared_memory", RegionAccess::read_write_access);
     logger_->print("Shared memory and mapped region all set.");
 
     logger_->print("Will open all child processes.");
-    //pid_t
+
+    // just to test it out
+    // to do more modular
+    // eg: void forkProcess(const string name) or
+    // void forkProcess(const EProcessType type)
+    pid_t pid = fork();
+    pid_t sid;
+
+    if (pid < 0) { exit(EXIT_FAILURE); }
+
+    if (pid == 0)
+    {
+        sid = setsid();
+        if (sid < 0) { exit(EXIT_FAILURE); }
+
+        // TODO maybe find a way to set process name
+        Service1 service;
+        service.run();
+    }
 
     while(true)
     {

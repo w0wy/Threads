@@ -5,12 +5,16 @@
 #ifndef THREADS_SUPERVISORDAEMON_H
 #define THREADS_SUPERVISORDAEMON_H
 
+#include "Logger.h"
+
 class SupervisorDaemon {
 public:
-    SupervisorDaemon() = default;
+    SupervisorDaemon();
     ~SupervisorDaemon() = default;
 
     void operator()();
+
+    static Logger* logger_;
 };
 
 
