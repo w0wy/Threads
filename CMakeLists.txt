@@ -9,12 +9,12 @@ set(CMAKE_BUILD_TYPE Debug)
 set(SOURCE_FILES_DAEMON 
 	SupervisorDaemon.cpp 
 	SupervisorDaemon.h 
-	Logger.cpp 
-	Logger.h 
+	Utils/Logger.cpp 
+	Utils/Logger.h 
 	Services/AService.h 
 	Services/Service1.h 
 	Services/Service1.cpp 
-	MemoryHelpers.h)
+	Utils/MemoryHelpers.h)
 
 set(BOOST_INCLUDEDIR /usr/include/)
 set(BOOST_LIBRARYDIR /usr/lib/)

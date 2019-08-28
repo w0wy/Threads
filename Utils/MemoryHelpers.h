@@ -16,6 +16,7 @@ enum RegionAccess
 
 struct shm_remover
 {
+    // TODO : add logger here to notify when memory has been created
     shm_remover() {
         boost::interprocess::shared_memory_object::remove("shared_memory");}
     ~shm_remover(){
