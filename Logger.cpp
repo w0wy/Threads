@@ -3,8 +3,9 @@
 //
 
 #include "Logger.h"
+#include <iostream>
 
-const std::string Logger::logFileName_ = "syslog.log";
+const std::string Logger::logFileName_ = "/var/fpwork/fduralia/threads_and_all/Threads/build/syslog.log";
 Logger* Logger::this_ = nullptr;
 std::ofstream Logger::logFileStream_;
 std::mutex Logger::locker_;
@@ -15,7 +16,7 @@ Logger* Logger::getLogger() {
     if (this_ == nullptr)
     {
         this_ = new Logger();
-        logFileStream_.open(logFileName_.c_str(), std::ofstream::out); // | std::ofstream::app);
+        logFileStream_.open(logFileName_.c_str(), std::ofstream::out | std::ofstream::trunc); // | std::ofstream::app);
     }
 
     return this_;

@@ -12,7 +12,7 @@ public:
     SupervisorDaemon();
     ~SupervisorDaemon() = default;
 
-    void operator()();
+    void operator()(char * argv[]);
 
     static Logger* logger_;
 };

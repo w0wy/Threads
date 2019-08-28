@@ -6,6 +6,7 @@
 #define THREADS_SERVICE1_H
 
 #include "AService.h"
+#include "string.h"
 
 // TODO move impl to .cpp
 class Service1 : public AService
@@ -25,10 +26,13 @@ public:
     };
     virtual ~Service1() = default;
 
-    void run() {
+    void run(char * argv[]) {
 
         // just to test it out
         while(true) {
+            int argv0size = strlen(argv[0]);
+            strncpy(argv[0],"Service1",argv0size);
+
             static Logger *logger_ = Logger::getLogger();
             logger_->setTag(typeid(this).name());
 

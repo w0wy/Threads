@@ -23,7 +23,7 @@ public:
     }
     virtual ~AService()= default;
 
-    virtual void run() = 0;
+    virtual void run(char * argv[]) = 0;
 };
 
 

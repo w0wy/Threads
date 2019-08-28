@@ -5,6 +5,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <string.h>
 
 #include "SupervisorDaemon.h"
 #include "Services/Service1.h"
@@ -15,10 +16,11 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-Logger* SupervisorDaemon::logger_ = Logger::getLogger();
+Logger* SupervisorDaemon::logger_;
 
 SupervisorDaemon::SupervisorDaemon()
 {
+    logger_ = Logger::getLogger();
     std::string fullTag = typeid(this).name();
 //    FIXME not working as it should
 //    fullTag += "+";
@@ -26,9 +28,13 @@ SupervisorDaemon::SupervisorDaemon()
     logger_->setTag(fullTag);
 }
 
-void SupervisorDaemon::operator()()
+void SupervisorDaemon::operator()(char * argv[])
 {
+    int argv0size = strlen(argv[0]);
+    strncpy(argv[0],"SupervisorDaemon",argv0size);
+
     logger_->print("Daemon started. Will allocate shared memory!");
+
     logger_->print("Preparing remover.");
     shm_remover memRemover;
     logger_->print("Remover all set.");
@@ -55,7 +61,7 @@ void SupervisorDaemon::operator()()
         if (sid < 0) { exit(EXIT_FAILURE); }
 
         Service1 service;
-        service.run();
+        service.run(argv);
     }
 
     while(true)
@@ -99,7 +105,7 @@ int main(int argc, char * argv[])
     SupervisorDaemon daemon;
 
     // Starting daemon
-    daemon();
+    daemon(argv);
 
     return 0;
 }
