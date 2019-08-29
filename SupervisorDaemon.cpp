@@ -9,8 +9,8 @@
 
 #include "SupervisorDaemon.h"
 #include "Services/Service1.h"
-#include "Services/ServiceRunner.h"
-#include "Utils/MemoryHelpers.h"
+#include "Libs/ServicesLib/ServiceRunner.h"
+#include "Libs/UtilsLib/MemoryHelpers.h"
 
 #include <stdlib.h>
 
@@ -38,7 +38,7 @@ void SupervisorDaemon::operator()(char * argv[])
     memhelp::shm_remover memRemover("shared_memory", logger_);
     memhelp::setMemoryRegion("shared_memory", memhelp::RegionAccess::read_write_access, logger_);
 
-    logger_->print("Will open all child processes.");
+    logger_->print("Will start all child processes.");
 
     svc::startServices();
 
@@ -74,7 +74,7 @@ int main(int argc, char * argv[])
 {
 
     svc::startServices();
-    
+
     pid_t pid, sid;
 
     // Fork parent process
