@@ -13,7 +13,8 @@ set(SOURCE_FILES_DAEMON
 	SupervisorDaemon.h 
 	Services/AService.h 
 	Services/Service1.h 
-	Services/Service1.cpp)
+	Services/Service1.cpp
+	Services/ServiceRunner.h)
 
 #set(OBJECTS_DEPENDENCIES
 #	$<TARGET_OBJECTS:UtilsLibrary>
