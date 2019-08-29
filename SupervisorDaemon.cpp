@@ -9,23 +9,22 @@
 
 #include "SupervisorDaemon.h"
 #include "Services/Service1.h"
-#include "MemoryHelpers.h"
+#include "Utils/MemoryHelpers.h"
 
 #include <stdlib.h>
+
+namespace sprvs
+{
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-Logger* SupervisorDaemon::logger_;
+smartlog::Logger* SupervisorDaemon::logger_;
 
 SupervisorDaemon::SupervisorDaemon()
 {
-    logger_ = Logger::getLogger();
-    std::string fullTag = typeid(this).name();
-//    FIXME not working as it should
-//    fullTag += "+";
-//    fullTag += std::to_string((int)getpid());
-    logger_->setTag(fullTag);
+    logger_ = smartlog::Logger::getLogger();
+    logger_->setFullTag("sprvs::SupervisorDaemon", (int)getpid());
 }
 
 void SupervisorDaemon::operator()(char * argv[])
@@ -35,13 +34,8 @@ void SupervisorDaemon::operator()(char * argv[])
 
     logger_->print("Daemon started. Will allocate shared memory!");
 
-    logger_->print("Preparing remover.");
-    shm_remover memRemover;
-    logger_->print("Remover all set.");
-
-    logger_->print("Preparing shared memory object and mapped region.");
-    setMemoryRegion("shared_memory", RegionAccess::read_write_access);
-    logger_->print("Shared memory and mapped region all set.");
+    memhelp::shm_remover memRemover("shared_memory", logger_);
+    memhelp::setMemoryRegion("shared_memory", memhelp::RegionAccess::read_write_access, logger_);
 
     logger_->print("Will open all child processes.");
 
@@ -60,7 +54,7 @@ void SupervisorDaemon::operator()(char * argv[])
         sid = setsid();
         if (sid < 0) { exit(EXIT_FAILURE); }
 
-        Service1 service;
+        svc::Service1 service;
         service.run(argv);
     }
 
@@ -70,6 +64,8 @@ void SupervisorDaemon::operator()(char * argv[])
     }
 }
 #pragma clang diagnostic pop
+
+}  // namespace supervision
 
 int main(int argc, char * argv[])
 {
@@ -102,7 +98,7 @@ int main(int argc, char * argv[])
     close(STDERR_FILENO);
 
     // Creating daemon
-    SupervisorDaemon daemon;
+    sprvs::SupervisorDaemon daemon;
 
     // Starting daemon
     daemon(argv);

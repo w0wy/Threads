@@ -5,7 +5,10 @@
 #ifndef THREADS_SUPERVISORDAEMON_H
 #define THREADS_SUPERVISORDAEMON_H
 
-#include "Logger.h"
+#include "Utils/Logger.h"
+
+namespace sprvs
+{
 
 class SupervisorDaemon {
 public:
@@ -14,8 +17,9 @@ public:
 
     void operator()(char * argv[]);
 
-    static Logger* logger_;
+    static smartlog::Logger* logger_;
 };
 
+}
 
 #endif //THREADS_SUPERVISORDAEMON_H

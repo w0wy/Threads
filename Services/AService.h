@@ -5,14 +5,17 @@
 #ifndef THREADS_ASERVICE_H
 #define THREADS_ASERVICE_H
 
-#include "../Logger.h"
+#include "../Utils/Logger.h"
+
+namespace svc
+{
 
 class AService
 {
 public:
     AService()
     {
-        static Logger* logger_ = Logger::getLogger();
+        static smartlog::Logger* logger_ = smartlog::Logger::getLogger();
         std::string fullTag = typeid(this).name();
 //        FIXME not working as it should
 //        fullTag += "+";
@@ -26,5 +29,6 @@ public:
     virtual void run(char * argv[]) = 0;
 };
 
+}  // namespace svc
 
 #endif //THREADS_ASERVICE_H

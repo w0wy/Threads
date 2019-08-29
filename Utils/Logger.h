@@ -10,6 +10,8 @@
 #include <fstream>
 #include <mutex>
 
+namespace smartlog
+{
 class Logger {
     private:
         Logger() = default;
@@ -26,8 +28,10 @@ class Logger {
         Logger& operator<<(const std::string&);
 
         void setTag(const std::string&);
+        void setFullTag(const std::string&, const int);
 
         static Logger* getLogger();
     };
+}  // namespace smartlog
 
 #endif //THREADS_LOGGER_H

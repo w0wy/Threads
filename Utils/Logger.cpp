@@ -5,6 +5,8 @@
 #include "Logger.h"
 #include <iostream>
 
+namespace smartlog
+{
 const std::string Logger::logFileName_ = "/var/fpwork/fduralia/threads_and_all/Threads/build/syslog.log";
 Logger* Logger::this_ = nullptr;
 std::ofstream Logger::logFileStream_;
@@ -37,3 +39,11 @@ void Logger::setTag(const std::string & tag)
 {
     tag_ = tag;
 }
+
+void Logger::setFullTag(const std::string& name, const int pid)
+{
+    tag_ = name;
+    tag_ += "+";
+    tag_ += std::to_string(pid);
+}
+}  // namespace smartlog
