@@ -22,6 +22,7 @@ find_package(Boost 1.53 REQUIRED ${BOOST_COMPONENTS})
 add_executable(SupervisorDaemon 
 	${SOURCE_FILES_DAEMON})
 
-target_link_libraries(SupervisorDaemon ${BOOST_LIBRARYDIR}
-	utils.so
-	services.so)
+target_link_libraries(SupervisorDaemon 
+	${BOOST_LIBRARYDIR}
+	utils
+	services)
