@@ -5,7 +5,7 @@
 #ifndef THREADS_SERVICE1_H
 #define THREADS_SERVICE1_H
 
-#include "../Libs/ServicesLib/AService.h"
+#include "ServicesLib/include/AService.h"
 #include "string.h"
 
 namespace svc

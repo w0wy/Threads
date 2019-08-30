@@ -19,6 +19,11 @@ set(BOOST_LIBRARYDIR /usr/lib/)
 set(BOOST_COMPONENTS system thread date_time filesystem regex)
 find_package(Boost 1.53 REQUIRED ${BOOST_COMPONENTS})
 
+set(LIBS_INCLUDE_DIRS
+	Libs/)
+
+include_directories(${LIBS_INCLUDE_DIRS})
+
 add_executable(SupervisorDaemon 
 	${SOURCE_FILES_DAEMON})
 

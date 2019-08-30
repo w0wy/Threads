@@ -9,8 +9,9 @@
 
 #include "SupervisorDaemon.h"
 #include "Services/Service1.h"
-#include "Libs/ServicesLib/ServiceRunner.h"
-#include "Libs/UtilsLib/MemoryHelpers.h"
+
+#include "ServicesLib/include/ServiceRunner.h"
+#include "UtilsLib/include/MemoryHelpers.h"
 
 #include <stdlib.h>
 

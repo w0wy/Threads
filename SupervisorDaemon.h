@@ -5,7 +5,7 @@
 #ifndef THREADS_SUPERVISORDAEMON_H
 #define THREADS_SUPERVISORDAEMON_H
 
-#include "Libs/UtilsLib/Logger.h"
+#include "UtilsLib/include/Logger.h"
 
 namespace sprvs
 {

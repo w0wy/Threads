@@ -13,10 +13,8 @@ namespace svc
 	#./SupervisorDaemon \n\
 	"
 
-	void startServices()
-	{
-		system(RUN_SVCS_SCRIPT);
-	}
+void startServices();
+
 }
 
 #endif  // THREADS_SERVICERUNNER_H

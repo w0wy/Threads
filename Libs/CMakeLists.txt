@@ -19,9 +19,8 @@ find_package(Boost 1.53 REQUIRED ${BOOST_COMPONENTS})
 #            UTILS LIBS            #
 ####################################
 set(SOURCE_FILES_UTILS_LIBRARY
-	UtilsLib/Logger.cpp 
-	UtilsLib/Logger.h
-	UtilsLib/MemoryHelpers.h)
+	UtilsLib/src/Logger.cpp 
+	)
 
 add_library(utils SHARED ${SOURCE_FILES_UTILS_LIBRARY})
 
@@ -29,14 +28,14 @@ set_target_properties(utils PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(utils PROPERTIES SOVERSION 1)
 set_target_properties(utils PROPERTIES LINKER_LANGUAGE CXX)
 
-target_include_directories(utils PRIVATE UtilsLib)
+target_include_directories(utils PRIVATE UtilsLib/include/)
 
 ####################################
 #          SERVICES LIB            #
 ####################################
 set(SOURCE_FILES_SERVICES_LIBRARY
-	ServicesLib/ServiceRunner.h
-	ServicesLib/AService.h)
+	ServicesLib/src/ServiceRunner.cpp
+	)
 
 add_library(services SHARED ${SOURCE_FILES_SERVICES_LIBRARY})
 
@@ -44,7 +43,7 @@ set_target_properties(services PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(services PROPERTIES SOVERSION 1)
 set_target_properties(services PROPERTIES LINKER_LANGUAGE CXX)
 
-target_include_directories(services PRIVATE ServicesLib)
+target_include_directories(services PRIVATE ServicesLib/include/)
 target_link_libraries(services utils)
 
 ####################################
