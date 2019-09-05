@@ -13,21 +13,20 @@ namespace svc
 class AService
 {
 public:
-    AService()
-    {
-        static smartlog::Logger* logger_ = smartlog::Logger::getLogger();
-        std::string fullTag = typeid(this).name();
-//        FIXME not working as it should
-//        fullTag += "+";
-//        fullTag += std::to_string((int)getpid());
-        logger_->setTag(fullTag);
-
-        logger_->print("Service base initialized");
-    }
-    virtual ~AService()= default;
+    AService() = default;
+    virtual ~AService() = default;
 
     virtual void run(char * argv[]) = 0;
+    inline void setLogger(const std::string& fullTag, int pid)
+    {
+    	logger_->setFullTag(fullTag, pid);
+    }
+
+protected:
+	static smartlog::Logger* logger_;;
 };
+
+smartlog::Logger* AService::logger_ = smartlog::Logger::getLogger();
 
 }  // namespace svc
 

@@ -17,12 +17,13 @@ public:
     Service1()
     {
         // just to test it out
-        static smartlog::Logger* logger_ = smartlog::Logger::getLogger();
-        std::string fullTag = typeid(this).name();
+        AService::setLogger("svc::Service1", (int)getpid());
+        //static smartlog::Logger* logger_ = smartlog::Logger::getLogger();
+        //std::string fullTag = typeid(this).name();
 //        FIXME not working as it should
 //        fullTag += "+";
 //        fullTag += std::to_string((int)getpid());
-        logger_->setTag(fullTag);
+        //logger_->setTag(fullTag);
 
         logger_->print("Service initialized");
     };
@@ -33,7 +34,7 @@ public:
         // just to test it out
         while(true) {
             int argv0size = strlen(argv[0]);
-            strncpy(argv[0],"Service1",argv0size);
+            strncpy(argv[0],"Service1", argv0size);
 
             static smartlog::Logger *logger_ = smartlog::Logger::getLogger();
             logger_->setTag(typeid(this).name());

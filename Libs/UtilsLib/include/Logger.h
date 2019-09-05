@@ -12,6 +12,7 @@
 
 namespace smartlog
 {
+
 class Logger {
     private:
         Logger() = default;
@@ -31,7 +32,8 @@ class Logger {
         void setFullTag(const std::string&, const int);
 
         static Logger* getLogger();
-    };
+};
+
 }  // namespace smartlog
 
 #endif //THREADS_LOGGER_H

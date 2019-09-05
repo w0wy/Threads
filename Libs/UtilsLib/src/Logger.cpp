@@ -7,6 +7,7 @@
 
 namespace smartlog
 {
+
 const std::string Logger::logFileName_ = "/var/fpwork/fduralia/threads_and_all/Threads/build/syslog.log";
 Logger* Logger::this_ = nullptr;
 std::ofstream Logger::logFileStream_;

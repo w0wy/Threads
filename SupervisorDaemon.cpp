@@ -37,11 +37,10 @@ void SupervisorDaemon::operator()(char * argv[])
     logger_->print("Daemon started. Will allocate shared memory!");
 
     memhelp::shm_remover memRemover("shared_memory", logger_);
-    memhelp::setMemoryRegion("shared_memory", memhelp::RegionAccess::read_write_access, logger_);
+    memhelp::setSharedMemory("shared_memory", memhelp::RegionAccess::read_write_access, logger_);
+    memhelp::initMessageQueue(logger_);
 
     logger_->print("Will start all child processes.");
-
-    svc::startServices();
 
     // just to test it out
     // to do more modular
@@ -73,9 +72,6 @@ void SupervisorDaemon::operator()(char * argv[])
 
 int main(int argc, char * argv[])
 {
-
-    svc::startServices();
-
     pid_t pid, sid;
 
     // Fork parent process

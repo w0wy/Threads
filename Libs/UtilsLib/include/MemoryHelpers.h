@@ -12,10 +12,38 @@
 namespace memhelp
 {
 
+static size_t message_queue_size_ = 0;
+static boost::interprocess::mapped_region region_;
+
 enum RegionAccess
 {
     read_access,
     read_write_access,
+};
+
+struct Message
+{
+    uint32_t * data;
+    size_t size_of_data;
+};
+
+struct MessageQueue
+{
+    MessageQueue():
+    msgs_(new Message[10]),
+    capacity_(10),
+    front_(0),
+    rear_(0),
+    count_(0)
+    {};
+    ~MessageQueue();
+
+private:
+    Message * msgs_;
+    int capacity_;
+    int front_;
+    int rear_; 
+    int count_;
 };
 
 struct shm_remover
@@ -25,9 +53,7 @@ struct shm_remover
         memName_(memName)
     {
         logger->print("Preparing remover.");
-
         boost::interprocess::shared_memory_object::remove(memName_.c_str());
-
         logger->print("Remover all set.");
     }
     ~shm_remover()
@@ -52,36 +78,38 @@ namespace {
     }
 }
 
-// TODO add impl
-boost::interprocess::mapped_region getMemoryRegion(const std::string& memName, RegionAccess accesType, smartlog::Logger* logger)
+void setSharedMemory(const std::string& memName, RegionAccess accessType, smartlog::Logger* logger/*, uint32_t size*/)
 {
-    logger->print("Opening shared memory object : " + memName + " and accessing mapped_region");
-    
-    boost::interprocess::shared_memory_object shm(
-            boost::interprocess::open_only,
-            memName.c_str(),
-            boost::interprocess::read_write);
-
-    boost::interprocess::mapped_region region(shm, boost::interprocess::read_write);
-
-    logger->print("Shared memory open successful. Retrieved mapped region.");
-    return region;
-}
-
-boost::interprocess::mapped_region setMemoryRegion(const std::string& memName, RegionAccess accessType, smartlog::Logger* logger/*, uint32_t size*/)
-{
-    logger->print("Creating shared memory object : " + memName + " and mapped region.");
+    logger->print("Creating shared memory object [" + memName + "] and mapped region.");
 
     boost::interprocess::shared_memory_object shared_memory(
             boost::interprocess::create_only,
             memName.c_str(),
             getAccessMode(accessType));
     shared_memory.truncate(64 * 1024);
+    region_ = boost::interprocess::mapped_region(shared_memory, getAccessMode(accessType));
 
-    boost::interprocess::mapped_region region(shared_memory, boost::interprocess::read_write);
+    logger->print("Shared memory object created.");
+}
 
-    logger->print("Shared memory and mapped region created.");
-    return region;
+void initMessageQueue(smartlog::Logger* logger)
+{
+    logger->print("Initializing MessageQueue !");
+
+    MessageQueue *msgQue = new MessageQueue();
+    message_queue_size_ = sizeof(msgQue);
+    std::memcpy(region_.get_address(), &msgQue, message_queue_size_);
+
+    logger->print("MessageQueue initialized!");
+}
+
+void sendTo(Message msg, int sicad)
+{
+    MessageQueue *msgQue;
+    std::memcpy(&msgQue, region_.get_address(), message_queue_size_);
+
+    //msgQue->enqueue(msg);
+
 }
 
 }  // namespace memhelp
