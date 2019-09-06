@@ -32,7 +32,7 @@ public:
     void run(char * argv[]) {
 
         // just to test it out
-        while(true) {
+        //while(true) {
             int argv0size = strlen(argv[0]);
             strncpy(argv[0],"Service1", argv0size);
 
@@ -40,8 +40,8 @@ public:
             logger_->setTag(typeid(this).name());
 
             logger_->print("running");
-            sleep(10);
-        }
+            //sleep(10);
+        //}
     }
 };
 }  // namespace svc

@@ -13,6 +13,8 @@
 namespace smartlog
 {
 
+
+// TODO make logger not use pointers => no leaks
 class Logger {
     private:
         Logger() = default;
@@ -20,11 +22,13 @@ class Logger {
         Logger(const Logger &);
 
         static const std::string logFileName_;
-        static Logger *this_;
+        static Logger* this_;
         static std::ofstream logFileStream_;
         static std::mutex locker_;
         static std::string tag_;
     public:
+        ~Logger() = default;
+
         void print(const std::string&);
         Logger& operator<<(const std::string&);
 

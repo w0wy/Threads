@@ -9,10 +9,11 @@
 #include <boost/interprocess/shared_memory_object.hpp>
 #include "Logger.h"
 
+#define F_PROCESS_UID 0x3E9 // 1001
+
 namespace memhelp
 {
 
-static size_t message_queue_size_ = 0;
 static boost::interprocess::mapped_region region_;
 
 enum RegionAccess
@@ -36,15 +37,20 @@ struct MessageQueue
     rear_(0),
     count_(0)
     {};
-    ~MessageQueue();
+    ~MessageQueue()
+    {
+        delete[] msgs_;
+    };
+    int capacity_;
 
 private:
     Message * msgs_;
-    int capacity_;
     int front_;
     int rear_; 
     int count_;
 };
+
+static constexpr size_t message_queue_size_ = sizeof(MessageQueue);
 
 struct shm_remover
 {
@@ -92,24 +98,20 @@ void setSharedMemory(const std::string& memName, RegionAccess accessType, smartl
     logger->print("Shared memory object created.");
 }
 
-void initMessageQueue(smartlog::Logger* logger)
+void registerCommunication(int uid, smartlog::Logger* logger)
 {
-    logger->print("Initializing MessageQueue !");
+    logger->print("Registering process [" + std::to_string(uid) + "] to communcation!");
 
-    MessageQueue *msgQue = new MessageQueue();
-    message_queue_size_ = sizeof(msgQue);
-    std::memcpy(region_.get_address(), &msgQue, message_queue_size_);
+    MessageQueue msgQue;
+    std::memcpy(static_cast<char*>(region_.get_address()) + (uid % 10 * message_queue_size_), 
+        &msgQue, message_queue_size_);
 
-    logger->print("MessageQueue initialized!");
+    logger->print("Process [" + std::to_string(uid) + "] registered successfuly!");
 }
 
-void sendTo(Message msg, int sicad)
+void sendTo(Message msg, int uid)
 {
-    MessageQueue *msgQue;
-    std::memcpy(&msgQue, region_.get_address(), message_queue_size_);
-
-    //msgQue->enqueue(msg);
-
+    //MessageQueue * msg = reinterpret_cast<MessageQueue*>(uid % 10 * message_queue_size_);
 }
 
 }  // namespace memhelp

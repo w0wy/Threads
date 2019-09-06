@@ -38,7 +38,7 @@ void SupervisorDaemon::operator()(char * argv[])
 
     memhelp::shm_remover memRemover("shared_memory", logger_);
     memhelp::setSharedMemory("shared_memory", memhelp::RegionAccess::read_write_access, logger_);
-    memhelp::initMessageQueue(logger_);
+    memhelp::registerCommunication(F_PROCESS_UID, logger_);
 
     logger_->print("Will start all child processes.");
 
@@ -61,10 +61,10 @@ void SupervisorDaemon::operator()(char * argv[])
         service.run(argv);
     }
 
-    while(true)
-    {
-        sleep(1);
-    }
+    //while(true)
+    //{
+    //    sleep(1);
+    //}
 }
 #pragma clang diagnostic pop
 
