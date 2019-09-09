@@ -21,12 +21,12 @@ namespace sprvs
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-smartlog::Logger* SupervisorDaemon::logger_;
+//smartlog::Logger* SupervisorDaemon::logger_;
 
 SupervisorDaemon::SupervisorDaemon()
 {
-    logger_ = smartlog::Logger::getLogger();
-    logger_->setFullTag("sprvs::SupervisorDaemon", (int)getpid());
+    //logger_ = smartlog::Logger::getLogger();
+    //logger_->setFullTag("sprvs::SupervisorDaemon", (int)getpid());
 }
 
 void SupervisorDaemon::operator()(char * argv[])
@@ -34,13 +34,13 @@ void SupervisorDaemon::operator()(char * argv[])
     int argv0size = strlen(argv[0]);
     strncpy(argv[0],"SupervisorDaemon",argv0size);
 
-    logger_->print("Daemon started. Will allocate shared memory!");
+    //logger_->print("Daemon started. Will allocate shared memory!");
 
-    memhelp::shm_remover memRemover("shared_memory", logger_);
-    memhelp::setSharedMemory("shared_memory", memhelp::RegionAccess::read_write_access, logger_);
-    memhelp::registerCommunication(F_PROCESS_UID, logger_);
+    memhelp::shm_remover memRemover("shared_memory");//, logger_);
+    memhelp::setSharedMemory("shared_memory", memhelp::RegionAccess::read_write_access);//, logger_);
+    memhelp::registerCommunication(F_PROCESS_UID);//, logger_);
 
-    logger_->print("Will start all child processes.");
+    //logger_->print("Will start all child processes.");
 
     // just to test it out
     // to do more modular
@@ -56,7 +56,7 @@ void SupervisorDaemon::operator()(char * argv[])
     {
         sid = setsid();
         if (sid < 0) { exit(EXIT_FAILURE); }
-
+        //LOG_DEBUG("3");
         svc::Service1 service;
         service.run(argv);
     }
@@ -102,6 +102,10 @@ int main(int argc, char * argv[])
 
     // Creating daemon
     sprvs::SupervisorDaemon daemon;
+
+    LOG_DEBUG("1");
+    LOG_DEBUG("2");
+    LOG_INFO("ahahaha info  " << sid);
 
     // Starting daemon
     daemon(argv);

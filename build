@@ -1,0 +1,12 @@
+#!/bin/bash
+DEFAULT_DEBUG="-DDEBUG=0"
+if [ $# -eq 1 ] 
+	then
+		DEFAULT_DEBUG=$1
+fi
+# TODO if option is give -> delete exec and build again
+# TODO if not, just overwrite
+mkdir exec
+cd exec
+cmake $DEFAULT_DEBUG ..
+make

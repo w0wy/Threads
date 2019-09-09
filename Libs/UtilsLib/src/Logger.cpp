@@ -2,49 +2,73 @@
 // Created by w0wy on 7/28/2019.
 //
 
-#include "Logger.h"
+#include <cstring>
 #include <iostream>
+#include <unistd.h>
+#include <stdio.h>
+
+#include "Logger.h"
 
 namespace smartlog
 {
 
-const std::string Logger::logFileName_ = "/var/fpwork/fduralia/threads_and_all/Threads/build/syslog.log";
-Logger* Logger::this_ = nullptr;
+std::string Logger::logFileName_;
 std::ofstream Logger::logFileStream_;
 std::mutex Logger::locker_;
-std::string Logger::tag_;
 
-Logger* Logger::getLogger() {
-    std::lock_guard<std::mutex> guard(locker_);
-    if (this_ == nullptr)
+Logger::Logger(Level l):
+    level_(l)
+{
+    if (logFileName_.empty())
     {
-        this_ = new Logger();
-        logFileStream_.open(logFileName_.c_str(), std::ofstream::out | std::ofstream::trunc); // | std::ofstream::app);
+        char currentPath[FILENAME_MAX];
+        getcwd(currentPath, FILENAME_MAX);
+        logFileName_ = currentPath;
+        logFileName_ += "/syslog.log";
     }
 
-    return this_;
+    if (!logFileStream_.is_open())
+        logFileStream_.open(logFileName_.c_str(), std::ofstream::out | std::ofstream::trunc); // | std::ofstream::app);
 }
 
-void Logger::print(const std::string & message)
+// TODO implement other severities
+// TODO try to show stack trace for FATAL severity
+void Logger::operator()(std::string const& message,
+    char const* date,
+    char const* time,
+    char const* file,
+    char const* function,
+    int line)
 {
-    logFileStream_ << "[" << tag_  << "] " << message << std::endl;
+    std::lock_guard<std::mutex> lock(locker_);
+    switch(level_)
+    {
+        case Level::Debug:
+        {
+            std::string tempFile(file);
+            std::string withoutSyslog = logFileName_.substr(0, logFileName_.find_last_of("/"));
+            std::string actualFilePath = tempFile.substr(withoutSyslog.find_last_of("/") + 1);
+
+            logFileStream_ 
+                << "DBG - [" << date 
+                << "][" << time 
+                << "] [" << actualFilePath 
+                << "] " << function 
+                << ":" << line 
+                << " # " << message
+                << std::endl;
+        }
+        break;
+        case Level::Info:
+        default:
+        {
+            logFileStream_ 
+                << "INFO - [" << date 
+                << "][" << time 
+                << "] --- " << message
+                << std::endl;
+        }
+    }
 }
 
-Logger& Logger::operator<<(const std::string& message)
-{
-    logFileStream_ << "[" << tag_  << "] " << message << std::endl;
-    return *this;
-}
-
-void Logger::setTag(const std::string & tag)
-{
-    tag_ = tag;
-}
-
-void Logger::setFullTag(const std::string& name, const int pid)
-{
-    tag_ = name;
-    tag_ += "+";
-    tag_ += std::to_string(pid);
-}
 }  // namespace smartlog

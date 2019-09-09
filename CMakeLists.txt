@@ -4,9 +4,15 @@ project(Threads)
 add_subdirectory(Libs)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lrt")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lrt -std=c++14")
+
+option(DEBUG "Turn on debug symbols and debug logs" OFF)
+
+if (DEBUG)
+	add_definitions(-D__DEBUG__)
+	set(CMAKE_CXX_FLAGS_DEBUG "-g")
+	set(CMAKE_BUILD_TYPE Debug)
+endif()
 
 set(SOURCE_FILES_DAEMON 
 	SupervisorDaemon.cpp 
@@ -27,7 +33,7 @@ include_directories(${LIBS_INCLUDE_DIRS})
 add_executable(SupervisorDaemon 
 	${SOURCE_FILES_DAEMON})
 
-target_link_libraries(SupervisorDaemon 
+target_link_libraries(SupervisorDaemon
 	${BOOST_LIBRARYDIR}
 	utils
 	services)

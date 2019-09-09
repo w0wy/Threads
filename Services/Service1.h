@@ -17,7 +17,7 @@ public:
     Service1()
     {
         // just to test it out
-        AService::setLogger("svc::Service1", (int)getpid());
+        //AService::setLogger("svc::Service1", (int)getpid());
         //static smartlog::Logger* logger_ = smartlog::Logger::getLogger();
         //std::string fullTag = typeid(this).name();
 //        FIXME not working as it should
@@ -25,7 +25,8 @@ public:
 //        fullTag += std::to_string((int)getpid());
         //logger_->setTag(fullTag);
 
-        logger_->print("Service initialized");
+        //logger_->print("Service initialized");
+        //LOG_DEBUG("4");
     };
     virtual ~Service1() = default;
 
@@ -36,10 +37,10 @@ public:
             int argv0size = strlen(argv[0]);
             strncpy(argv[0],"Service1", argv0size);
 
-            static smartlog::Logger *logger_ = smartlog::Logger::getLogger();
-            logger_->setTag(typeid(this).name());
+            //static smartlog::Logger *logger_ = smartlog::Logger::getLogger();
+            //logger_->setTag(typeid(this).name());
 
-            logger_->print("running");
+            //logger_->print("running");
             //sleep(10);
         //}
     }
