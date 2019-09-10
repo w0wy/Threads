@@ -1,12 +1,38 @@
 #!/bin/bash
-DEFAULT_DEBUG="-DDEBUG=0"
-if [ $# -eq 1 ] 
+
+#POSSIBLE OPTIONS
+#--debug
+#--no-debug
+#--clean
+
+DEFAULT_DEBUG="-DDEBUG=OFF"
+
+if [ $# -gt 0 ];
 	then
-		DEFAULT_DEBUG=$1
+		if [[ $* == *"--clean"* ]];
+			then
+				if [ -d "exec" ]
+					then
+						echo "got to delete exec"
+						rm -rf exec
+					mkdir exec
+				elif [ ! -d "exec" ];
+					then
+						mkdir exec
+				fi
+		fi
+		if [[ $* = *"--debug"* ]];
+			then
+				DEFAULT_DEBUG="-DDEBUG=ON"
+		elif [[ $* = *"--no-debug"* ]];
+			then
+				DEFAULT_DEBUG="-DDEBUG=OFF"
+		fi
+		cd exec
+		cmake $DEFAULT_DEBUG ..
+		make
+else
+	cd exec
+	cmake $DEFAULT_DEBUG ..
+	make
 fi
-# TODO if option is give -> delete exec and build again
-# TODO if not, just overwrite
-mkdir exec
-cd exec
-cmake $DEFAULT_DEBUG ..
-make

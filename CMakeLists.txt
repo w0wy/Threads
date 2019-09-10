@@ -20,7 +20,7 @@ set(SOURCE_FILES_DAEMON
 )
 
 set(BOOST_INCLUDEDIR /usr/include/)
-set(BOOST_LIBRARYDIR /usr/lib/)
+#set(BOOST_LIBRARYDIR /usr/lib/)
 
 set(BOOST_COMPONENTS system thread date_time filesystem regex)
 find_package(Boost 1.53 REQUIRED ${BOOST_COMPONENTS})
@@ -34,6 +34,5 @@ add_executable(SupervisorDaemon
 	${SOURCE_FILES_DAEMON})
 
 target_link_libraries(SupervisorDaemon
-	${BOOST_LIBRARYDIR}
 	utils
 	services)
