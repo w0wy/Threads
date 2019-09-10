@@ -12,66 +12,37 @@
 
 #include "ServicesLib/include/ServiceRunner.h"
 #include "UtilsLib/include/MemoryHelpers.h"
+#include "UtilsLib/include/Utilities.h"
 
 #include <stdlib.h>
 
 namespace sprvs
 {
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-noreturn"
-
-//smartlog::Logger* SupervisorDaemon::logger_;
-
-SupervisorDaemon::SupervisorDaemon()
-{
-    //logger_ = smartlog::Logger::getLogger();
-    //logger_->setFullTag("sprvs::SupervisorDaemon", (int)getpid());
-}
-
 void SupervisorDaemon::operator()(char * argv[])
 {
     int argv0size = strlen(argv[0]);
     strncpy(argv[0],"SupervisorDaemon",argv0size);
 
-    //logger_->print("Daemon started. Will allocate shared memory!");
+    LOG_INFO("Daemon started. Will allocate shared memory for processes...");
 
-    memhelp::shm_remover memRemover("shared_memory");//, logger_);
-    memhelp::setSharedMemory("shared_memory", memhelp::RegionAccess::read_write_access);//, logger_);
-    memhelp::registerCommunication(F_PROCESS_UID);//, logger_);
+    memhelp::shm_remover memRemover("shared_memory");
+    memhelp::setSharedMemory("shared_memory", memhelp::RegionAccess::read_write_access);
+    memhelp::registerCommunication(F_PROCESS_UID);
 
-    //logger_->print("Will start all child processes.");
-
-    // just to test it out
-    // to do more modular
-    // eg: void forkProcess(const string name) or
-    // void forkProcess(const EProcessType type)
-    pid_t pid, sid;
-
-    pid = fork();
-
-    if (pid < 0) { exit(EXIT_FAILURE); }
-
-    if (pid == 0)
-    {
-        sid = setsid();
-        if (sid < 0) { exit(EXIT_FAILURE); }
-        //LOG_DEBUG("3");
-        svc::Service1 service;
-        service.run(argv);
-    }
+    LOG_INFO("Shared memory allocated. Will start processes...");
 
     //while(true)
     //{
     //    sleep(1);
     //}
 }
-#pragma clang diagnostic pop
 
-}  // namespace supervision
+}  // namespace sprvs
 
 int main(int argc, char * argv[])
 {
+    UNUSED(argc);
     pid_t pid, sid;
 
     // Fork parent process
@@ -90,10 +61,6 @@ int main(int argc, char * argv[])
 
     if (sid < 0) { exit(EXIT_FAILURE); }
 
-    // Change directory
-    // If directory not found => exit with failure
-    // if ((chdir("/")) < 0) { exit(EXIT_FAILURE); }
-
     // Close standard file descriptors
     // Daemon process should have all Input and Output closed
     close(STDIN_FILENO);
@@ -102,10 +69,6 @@ int main(int argc, char * argv[])
 
     // Creating daemon
     sprvs::SupervisorDaemon daemon;
-
-    LOG_DEBUG("1");
-    LOG_DEBUG("2");
-    LOG_INFO("ahahaha info  " << sid);
 
     // Starting daemon
     daemon(argv);

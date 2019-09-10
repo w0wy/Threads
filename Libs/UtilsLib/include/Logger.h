@@ -36,6 +36,8 @@ public:
         int line);
 
 private:
+    void convertField(std::string&, int, char);
+
     Level level_;
     static std::ofstream logFileStream_;
     static std::mutex locker_;
@@ -57,34 +59,33 @@ private:
 Logger& Debug() {
     static Logger logger_dbg(Level::Debug);
     return logger_dbg;
-};
+}
 
 Logger& Info() {
     static Logger logger_info(Level::Info);
     return logger_info;
-};
+}
 
 Logger& Warning() {
     static Logger logger_wrn(Level::Warning);
     return logger_wrn;
-};
+}
 
 Logger& Error() {
     static Logger logger_err(Level::Error);
     return logger_err;
-};
+}
 
 Logger& Fatal() {
     static Logger logger_fatal(Level::Fatal);
     return logger_fatal;
-};
+}
 
 #ifdef __DEBUG__ // use this when compiling with param "-DDEBUG=ON"
 #    define LOG_DEBUG(Message_) LOG(smartlog::Debug(), Message_)
 #else
 #    define LOG_DEBUG(_) do {} while(0)
 #endif
-
 #define LOG_INFO(Message_) LOG(smartlog::Info(), Message_)
 #define LOG_WRN(Message_) LOG(smartlog::Warning(), Message_)
 #define LOG_ERR(Message_) LOG(smartlog::Error(), Message_)

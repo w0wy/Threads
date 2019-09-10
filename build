@@ -2,37 +2,53 @@
 
 #POSSIBLE OPTIONS
 #--debug
-#--no-debug
 #--clean
+#--code-check
+#--mem-check
 
-DEFAULT_DEBUG="-DDEBUG=OFF"
+DEBUG="-DDEBUG=OFF"
+CODE_CHECK="-DCODE_CHECK=OFF"
+
+if [ ! -d "exec" ];
+	then
+		mkdir exec
+fi
 
 if [ $# -gt 0 ];
 	then
 		if [[ $* == *"--clean"* ]];
 			then
-				if [ -d "exec" ]
-					then
-						echo "got to delete exec"
-						rm -rf exec
-					mkdir exec
-				elif [ ! -d "exec" ];
-					then
-						mkdir exec
-				fi
+				rm -rf exec
+				mkdir exec
 		fi
+
 		if [[ $* = *"--debug"* ]];
 			then
-				DEFAULT_DEBUG="-DDEBUG=ON"
-		elif [[ $* = *"--no-debug"* ]];
-			then
-				DEFAULT_DEBUG="-DDEBUG=OFF"
+				DEBUG="-DDEBUG=ON"
 		fi
+
+		if [[ $* = *"--code-check"* ]];
+			then
+				CODE_CHECK="-DCODE_CHECK=ON"
+		fi
+
 		cd exec
-		cmake $DEFAULT_DEBUG ..
+		cmake $DEBUG $CODE_CHECK ..
 		make
+
+		if [[ $* == *"--mem-check=file"* ]];
+			then
+				valgrind --leak-check=full --trace-children=yes -s --log-file=ValgrindOutput.txt ./SupervisorDaemon
+				echo -e "-- \033[0;31mValgrind\033[0m results written in \033[0;32mexec/ValgrindOutput.txt\033[0m file!"
+		elif [[ $* == *"--mem-check=console"* ]] || [[ $* == *"--mem-check"* ]];
+			then
+				echo -e "-- \033[0;31mValgrind\033[0m results showing in the \033[0;32mconsole\033[0m!"
+				valgrind --leak-check=full --trace-children=yes -s ./SupervisorDaemon
+		fi
+		cd ..
 else
 	cd exec
-	cmake $DEFAULT_DEBUG ..
+	cmake $DEBUG $CODE_CHECK ..
 	make
+	cd ..
 fi

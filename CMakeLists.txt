@@ -4,14 +4,19 @@ project(Threads)
 add_subdirectory(Libs)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lrt -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lrt -std=c++14 -rdynamic -O3")
 
 option(DEBUG "Turn on debug symbols and debug logs" OFF)
+option(CODE_CHECK "Turn on code warnings check" OFF)
 
 if (DEBUG)
 	add_definitions(-D__DEBUG__)
-	set(CMAKE_CXX_FLAGS_DEBUG "-g")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb3")
 	set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+if (CODE_CHECK)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-pie -Wall -Wextra -pedantic-errors") #-Werror")
 endif()
 
 set(SOURCE_FILES_DAEMON 

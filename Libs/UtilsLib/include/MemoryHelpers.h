@@ -7,9 +7,12 @@
 
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
+
+#include "Utilities.h"
+
 #include "Logger.h"
 
-#define F_PROCESS_UID 0x3E9 // 1001
+#define F_PROCESS_UID 0x03E9 // 1001
 
 namespace memhelp
 {
@@ -41,10 +44,10 @@ struct MessageQueue
     {
         delete[] msgs_;
     };
-    int capacity_;
 
 private:
     Message * msgs_;
+    int capacity_;
     int front_;
     int rear_; 
     int count_;
@@ -54,17 +57,16 @@ static constexpr size_t message_queue_size_ = sizeof(MessageQueue);
 
 struct shm_remover
 {
-    // TODO : add logger here to notify when memory has been created
-    explicit shm_remover(const std::string& memName)://, smartlog::Logger* logger):
+    explicit shm_remover(const std::string& memName):
         memName_(memName)
     {
-        //logger->print("Preparing remover.");
         boost::interprocess::shared_memory_object::remove(memName_.c_str());
-        //logger->print("Remover all set.");
+        LOG_DEBUG("Previously allocated memory object [" << memName << "] has been removed.");
     }
     ~shm_remover()
     {
         boost::interprocess::shared_memory_object::remove(memName_.c_str());
+        LOG_DEBUG("Allocated memory object [" << memName_ << "] has been removed.");
     }
 
     std::string memName_;
@@ -84,10 +86,8 @@ namespace {
     }
 }
 
-void setSharedMemory(const std::string& memName, RegionAccess accessType)//, smartlog::Logger* logger/*, uint32_t size*/)
+void setSharedMemory(const std::string& memName, RegionAccess accessType)
 {
-    //logger->print("Creating shared memory object [" + memName + "] and mapped region.");
-
     boost::interprocess::shared_memory_object shared_memory(
             boost::interprocess::create_only,
             memName.c_str(),
@@ -95,23 +95,22 @@ void setSharedMemory(const std::string& memName, RegionAccess accessType)//, sma
     shared_memory.truncate(64 * 1024);
     region_ = boost::interprocess::mapped_region(shared_memory, getAccessMode(accessType));
 
-    //logger->print("Shared memory object created.");
+    LOG_DEBUG("Shared memory object [" << memName << "] has been created and mapped_region has been set.");
 }
 
-void registerCommunication(int uid)//, smartlog::Logger* logger)
+void registerCommunication(int uid)
 {
-    //logger->print("Registering process [" + std::to_string(uid) + "] to communcation!");
-
     MessageQueue msgQue;
     std::memcpy(static_cast<char*>(region_.get_address()) + (uid % 10 * message_queue_size_), 
         &msgQue, message_queue_size_);
 
-    //logger->print("Process [" + std::to_string(uid) + "] registered successfuly!");
+    LOG_DEBUG("Process [" << uid << "] registered successfuly for communication.")
 }
 
 void sendTo(Message msg, int uid)
 {
-    //MessageQueue * msg = reinterpret_cast<MessageQueue*>(uid % 10 * message_queue_size_);
+    UNUSED(msg);
+    UNUSED(uid);
 }
 
 }  // namespace memhelp

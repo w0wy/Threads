@@ -9,7 +9,7 @@ namespace svc
 
 #define RUN_SVCS_SCRIPT "\
 	#!/bin/bash \n\
-	echo \"This is a test shell script inside CPP code!!\" \n\
+	echo \"Starting services!\" \n\
 	#./SupervisorDaemon \n\
 	"
 

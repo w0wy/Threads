@@ -12,12 +12,10 @@ namespace sprvs
 
 class SupervisorDaemon {
 public:
-    SupervisorDaemon();
+    SupervisorDaemon() = default;
     ~SupervisorDaemon() = default;
 
     void operator()(char * argv[]);
-
-    static smartlog::Logger* logger_;
 };
 
 }
