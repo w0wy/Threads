@@ -5,11 +5,14 @@
 #ifndef THREADS_SUPERVISORDAEMON_H
 #define THREADS_SUPERVISORDAEMON_H
 
-#include "UtilsLib/include/Logger.h"
+#include "Logger.h"
+#include <vector>
+#include <map>
+#include <stdlib.h>
 
 namespace sprvs
 {
-
+ 
 class SupervisorDaemon {
 public:
     SupervisorDaemon() = default;

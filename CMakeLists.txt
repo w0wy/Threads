@@ -31,7 +31,9 @@ set(BOOST_COMPONENTS system thread date_time filesystem regex)
 find_package(Boost 1.53 REQUIRED ${BOOST_COMPONENTS})
 
 set(LIBS_INCLUDE_DIRS
-	Libs/)
+	Libs/libMemory/include/
+	Libs/libServices/include/
+	Libs/libUtils/include/)
 
 include_directories(${LIBS_INCLUDE_DIRS})
 
@@ -40,4 +42,5 @@ add_executable(SupervisorDaemon
 
 target_link_libraries(SupervisorDaemon
 	utils
-	services)
+	services
+	memory)

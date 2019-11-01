@@ -23,7 +23,6 @@ enum class Level
     Debug
 };
 
-// TODO make logger not use pointers => no leaks
 class Logger {
 public:
     Logger(Level l);
@@ -56,40 +55,54 @@ private:
         __LINE__                                     \
     );                                               \
 
-Logger& Debug() {
+static Logger& Debug() {
     static Logger logger_dbg(Level::Debug);
     return logger_dbg;
 }
 
-Logger& Info() {
+static Logger& Info() {
     static Logger logger_info(Level::Info);
     return logger_info;
 }
 
-Logger& Warning() {
+static Logger& Warning() {
     static Logger logger_wrn(Level::Warning);
     return logger_wrn;
 }
 
-Logger& Error() {
+static Logger& Error() {
     static Logger logger_err(Level::Error);
     return logger_err;
 }
 
-Logger& Fatal() {
+static Logger& Fatal() {
     static Logger logger_fatal(Level::Fatal);
     return logger_fatal;
 }
 
+#ifndef LOG_DEBUG
 #ifdef __DEBUG__ // use this when compiling with param "-DDEBUG=ON"
 #    define LOG_DEBUG(Message_) LOG(smartlog::Debug(), Message_)
 #else
 #    define LOG_DEBUG(_) do {} while(0)
 #endif
+#endif
+
+#ifndef LOG_INFO
 #define LOG_INFO(Message_) LOG(smartlog::Info(), Message_)
+#endif
+
+#ifndef LOG_WRN
 #define LOG_WRN(Message_) LOG(smartlog::Warning(), Message_)
+#endif
+
+#ifndef LOG_ERR
 #define LOG_ERR(Message_) LOG(smartlog::Error(), Message_)
+#endif
+
+#ifndef LOG_FATAL
 #define LOG_FATAL(Message_) LOG(smartlog::Fatal(), Message_)
+#endif
 
 }  // namespace smartlog
 

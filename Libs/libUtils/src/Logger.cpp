@@ -48,11 +48,11 @@ void Logger::operator()(std::string const& message,
     std::string withoutSyslog = logFileName_.substr(0, logFileName_.find_last_of("/"));
     std::string actualFilePath = tempFile.substr(withoutSyslog.find_last_of("/") + 1);
     
-    std::string lineStr(std::to_string(line));
+    //std::string lineStr(std::to_string(line));
 
-    convertField(actualFilePath, 40, ']');
-    convertField(functionSig, 52, ' ');
-    convertField(lineStr, 4, ' ');
+    //convertField(actualFilePath, 40, ']');
+    //convertField(functionSig, 52, ' ');
+    //convertField(lineStr, 4, ' ');
 
     switch(level_)
     {
@@ -91,10 +91,10 @@ void Logger::operator()(std::string const& message,
     logFileStream_
         << "[" << date 
         << "][" << time
-        << "] [" << actualFilePath 
-        << "\t " << functionSig 
-        << ":" << lineStr 
-        << " # " << message
+        //<< "] [" << actualFilePath 
+        //<< "\t " << functionSig 
+        //<< ":" << lineStr 
+        << "] # " << message
         << std::endl;
 
     if (level_ == Level::Fatal)

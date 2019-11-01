@@ -10,11 +10,11 @@
 #include "SupervisorDaemon.h"
 #include "Services/Service1.h"
 
-#include "ServicesLib/include/ServiceRunner.h"
-#include "UtilsLib/include/MemoryHelpers.h"
-#include "UtilsLib/include/Utilities.h"
+#include "ServiceRunner.h"
+#include "Utilities.h"
 
 #include <stdlib.h>
+#include <cstring>
 
 namespace sprvs
 {
@@ -26,9 +26,7 @@ void SupervisorDaemon::operator()(char * argv[])
 
     LOG_INFO("Daemon started. Will allocate shared memory for processes...");
 
-    memhelp::shm_remover memRemover("shared_memory");
-    memhelp::setSharedMemory("shared_memory", memhelp::RegionAccess::read_write_access);
-    memhelp::registerCommunication(F_PROCESS_UID);
+    // MemoryManager setup
 
     LOG_INFO("Shared memory allocated. Will start processes...");
 
