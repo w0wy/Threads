@@ -34,8 +34,24 @@ public:
         char const* function,
         int line);
 
+    void operator()(std::string const& tag,
+        std::string const& message,
+        char const* date,
+        char const* time,
+        char const* file,
+        char const* function,
+        int line);
+
 private:
-    void convertField(std::string&, int, char);
+    void dumpOutput(
+        std::string const& tag,
+        std::string const& message,
+        char const* date,
+        char const* time,
+        char const* file,
+        char const* function,
+        int line);
+    std::string getLevel();
 
     Level level_;
     static std::ofstream logFileStream_;
@@ -55,54 +71,65 @@ private:
         __LINE__                                     \
     );                                               \
 
-static Logger& Debug() {
+#define LOG_TAG(Logger_, Tag_, Message_)             \
+    Logger_(                                         \
+        static_cast<std::ostringstream&>(            \
+            std::ostringstream().flush() << Tag_     \
+        ).str(),                                     \
+        static_cast<std::ostringstream&>(            \
+            std::ostringstream().flush() << Message_ \
+        ).str(),                                     \
+        __DATE__,                                    \
+        __TIME__,                                    \
+        __FILE__,                                    \
+        __PRETTY_FUNCTION__,                         \
+        __LINE__                                     \
+    );    
+
+Logger& Debug() {
     static Logger logger_dbg(Level::Debug);
     return logger_dbg;
 }
 
-static Logger& Info() {
+Logger& Info() {
     static Logger logger_info(Level::Info);
     return logger_info;
 }
 
-static Logger& Warning() {
+Logger& Warning() {
     static Logger logger_wrn(Level::Warning);
     return logger_wrn;
 }
 
-static Logger& Error() {
+Logger& Error() {
     static Logger logger_err(Level::Error);
     return logger_err;
 }
 
-static Logger& Fatal() {
+Logger& Fatal() {
     static Logger logger_fatal(Level::Fatal);
     return logger_fatal;
 }
 
-#ifndef LOG_DEBUG
 #ifdef __DEBUG__ // use this when compiling with param "-DDEBUG=ON"
 #    define LOG_DEBUG(Message_) LOG(smartlog::Debug(), Message_)
+#    define LOG_DEBUG_T(Tag_, Message_) LOG_TAG(smartlog::Debug(), Tag_, Message_)
 #else
-#    define LOG_DEBUG(_) do {} while(0)
-#endif
+#    define LOG_DEBUG(Message_) do {} while(0)
+#    define LOG_DEBUG_T(Tag_, Message_) do {} while(0)
 #endif
 
-#ifndef LOG_INFO
 #define LOG_INFO(Message_) LOG(smartlog::Info(), Message_)
-#endif
+#define LOG_INFO_T(Tag_, Message_) LOG_TAG(smartlog::Info(), Tag_, Message_)
 
-#ifndef LOG_WRN
 #define LOG_WRN(Message_) LOG(smartlog::Warning(), Message_)
-#endif
+#define LOG_WRN_T(Tag_, Message_) LOG_TAG(smartlog::Warning(), Tag_, Message_)
 
-#ifndef LOG_ERR
 #define LOG_ERR(Message_) LOG(smartlog::Error(), Message_)
-#endif
+#define LOG_ERR_T(Tag_, Message_) LOG_TAG(smartlog::Error(), Tag_, Message_)
 
-#ifndef LOG_FATAL
 #define LOG_FATAL(Message_) LOG(smartlog::Fatal(), Message_)
-#endif
+#define LOG_FATAL_T(Tag_, Message_) LOG_TAG(smartlog::Fatal(), Tag_, Message_)
 
 }  // namespace smartlog
 

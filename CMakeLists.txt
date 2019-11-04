@@ -10,7 +10,6 @@ option(DEBUG "Turn on debug symbols and debug logs" OFF)
 option(CODE_CHECK "Turn on code warnings check" OFF)
 
 if (DEBUG)
-	add_definitions(-D__DEBUG__)
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb3")
 	set(CMAKE_BUILD_TYPE Debug)
 endif()
@@ -37,7 +36,7 @@ set(LIBS_INCLUDE_DIRS
 
 include_directories(${LIBS_INCLUDE_DIRS})
 
-add_executable(SupervisorDaemon 
+add_executable(SupervisorDaemon
 	${SOURCE_FILES_DAEMON})
 
 target_link_libraries(SupervisorDaemon

@@ -12,7 +12,7 @@ namespace tracing
 std::string get_call_trace() {
     char **strings;
     size_t size;
-    enum Constexpr { MAX_SIZE = 1024 };
+    enum Constexpr { MAX_SIZE = 2048 };
     void *array[MAX_SIZE];
     size = backtrace(array, MAX_SIZE);
     strings = backtrace_symbols(array, size);

@@ -15,6 +15,16 @@
 
 #include <stdlib.h>
 #include <cstring>
+#include <signal.h>
+
+namespace
+{
+void sig_handler(int signum)
+{
+    LOG_FATAL_T(__func__, "Signal " << signum << " received!");
+    exit(signum);
+}
+}
 
 namespace sprvs
 {
@@ -22,13 +32,7 @@ namespace sprvs
 void SupervisorDaemon::operator()(char * argv[])
 {
     int argv0size = strlen(argv[0]);
-    strncpy(argv[0],"SupervisorDaemon",argv0size);
-
-    LOG_INFO("Daemon started. Will allocate shared memory for processes...");
-
-    // MemoryManager setup
-
-    LOG_INFO("Shared memory allocated. Will start processes...");
+    strncpy(argv[0], "SupervisorDaemon", argv0size);
 
     //while(true)
     //{
@@ -41,6 +45,11 @@ void SupervisorDaemon::operator()(char * argv[])
 int main(int argc, char * argv[])
 {
     UNUSED(argc);
+    signal(SIGINT, sig_handler);
+    signal(SIGSEGV, sig_handler);
+    signal(SIGBUS, sig_handler);
+    signal(SIGABRT, sig_handler);
+
     pid_t pid, sid;
 
     // Fork parent process

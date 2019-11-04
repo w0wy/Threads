@@ -15,6 +15,10 @@ set(BOOST_LIBRARYDIR /usr/lib/)
 set(BOOST_COMPONENTS system thread date_time filesystem regex)
 find_package(Boost 1.53 REQUIRED ${BOOST_COMPONENTS})
 
+if (DEBUG)
+	add_definitions(-D__DEBUG__)
+endif()
+
 ####################################
 #            UTILS LIB             #
 ####################################
@@ -34,7 +38,7 @@ target_include_directories(utils PRIVATE libUtils/include/)
 #            MEMORY LIB            #
 ####################################
 set(SOURCE_FILES_MEMORY_LIBRARY
-	libMemory/src/SharedMemoryManager.cpp
+	libMemory/src/MemoryManager.cpp
 	)
 
 add_library(memory SHARED ${SOURCE_FILES_MEMORY_LIBRARY})

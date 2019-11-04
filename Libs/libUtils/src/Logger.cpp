@@ -30,7 +30,9 @@ Logger::Logger(Level l):
     }
 
     if (!logFileStream_.is_open())
+    {
         logFileStream_.open(logFileName_.c_str(), std::ofstream::out | std::ofstream::trunc); // | std::ofstream::app);
+    }
 }
 
 void Logger::operator()(std::string const& message,
@@ -41,60 +43,54 @@ void Logger::operator()(std::string const& message,
     int line)
 {
     std::lock_guard<std::mutex> lock(locker_);
+    dumpOutput("", message, date, time, file, function, line);
+}
 
+void Logger::operator()(std::string const& tag,
+    std::string const& message,
+    char const* date,
+    char const* time,
+    char const* file,
+    char const* function,
+    int line)
+{
+    std::lock_guard<std::mutex> lock(locker_);
+    dumpOutput(tag, message, date, time, file, function, line);
+}
+
+void Logger::dumpOutput(
+    std::string const& tag,
+    std::string const& message,
+    char const* date,
+    char const* time,
+    char const* file,
+    char const* function,
+    int line)
+{
     std::string tempFile(file);
     std::string functionSig(function);
 
     std::string withoutSyslog = logFileName_.substr(0, logFileName_.find_last_of("/"));
     std::string actualFilePath = tempFile.substr(withoutSyslog.find_last_of("/") + 1);
-    
-    //std::string lineStr(std::to_string(line));
-
-    //convertField(actualFilePath, 40, ']');
-    //convertField(functionSig, 52, ' ');
-    //convertField(lineStr, 4, ' ');
-
-    switch(level_)
-    {
-        case Level::Debug:
-        {
-            logFileStream_
-                << "[DBG]\t";
-        }
-        break;
-        case Level::Info:
-        {
-            logFileStream_ 
-                << "[INF]\t";
-        }
-        break;
-        case Level::Warning:
-        {
-            logFileStream_ 
-                << "[WRN]\t";
-        }
-        break;
-        case Level::Error:
-        {
-            logFileStream_ 
-                << "[ERR]\t";
-        }
-        break;
-        case Level::Fatal:
-        {
-            logFileStream_ 
-                << "[FAT]\t";
-        }
-        break;
-    }
 
     logFileStream_
+        << getLevel()
         << "[" << date 
-        << "][" << time
-        //<< "] [" << actualFilePath 
-        //<< "\t " << functionSig 
-        //<< ":" << lineStr 
-        << "] # " << message
+        << "][" << time;
+
+    if (level_ == Level::Debug)
+        logFileStream_
+            << "][" << actualFilePath
+            << "][" << functionSig
+            << ":" << std::to_string(line);
+
+    if (tag != "")
+        logFileStream_
+            << "] # " << tag
+            << " $ ";
+
+    logFileStream_
+        << message
         << std::endl;
 
     if (level_ == Level::Fatal)
@@ -104,18 +100,38 @@ void Logger::operator()(std::string const& message,
             << std::endl;
 }
 
-void Logger::convertField(std::string& convertibleString, int max, char ch)
+std::string Logger::getLevel()
 {
-    static const std::string spaces(100, ' ');
-
-    if (convertibleString.size() < max)
+    switch(level_)
     {
-        convertibleString += ch;
-        convertibleString += spaces.substr(0, max - convertibleString.size() + 1);
+        case Level::Debug:
+        {
+            return "[DBG]\t";
+        }
+        break;
+        case Level::Info:
+        {
+            return "[INF]\t";
+        }
+        break;
+        case Level::Warning:
+        {
+            return "[WRN]\t";
+        }
+        break;
+        case Level::Error:
+        {
+            return "[ERR]\t";
+        }
+        break;
+        case Level::Fatal:
+        {
+            return "[FAT]\t";
+        }
+        break;
     }
 
-    if (convertibleString.size() > max + 1)
-        convertibleString = convertibleString.substr(convertibleString.size() - max);
+    return "";
 }
 
 }  // namespace smartlog

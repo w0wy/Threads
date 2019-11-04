@@ -10,6 +10,8 @@
 #include <map>
 #include <stdlib.h>
 
+#include "MemoryManager.h"
+
 namespace sprvs
 {
  
@@ -19,6 +21,8 @@ public:
     ~SupervisorDaemon() = default;
 
     void operator()(char * argv[]);
+
+    //static shmm::MemoryManager memory_manager;
 };
 
 }
