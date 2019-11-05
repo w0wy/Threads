@@ -2,6 +2,7 @@
 #define MESSAGE_QUEUE_H
 
 #include "Message.h"
+#include "MemoryManager.h"
 
 struct MessageQueue
 {
@@ -12,6 +13,7 @@ struct MessageQueue
     MessageQueue* next;
 
     void push(const Message*);
+    Message * pop();
 };
 
 #endif  // MESSAGE_QUEUE_H

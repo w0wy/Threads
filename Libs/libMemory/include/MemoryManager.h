@@ -12,21 +12,41 @@
 #include "Logger.h"
 #include "MessageQueue.h"
 
+#include <boost/interprocess/mapped_region.hpp>
+#include <boost/interprocess/shared_memory_object.hpp>
+
 namespace shmm
 {
+
+struct MemPool
+{
+	char * pool;
+	size_t size_in_bytes;
+}
 
 class MemoryManager
 {
 public:
+	static MemoryManager& getInstance();
+
+	// MemoryManager();
+	// virtual ~MemoryManager();
+	virtual void* allocate(size_t);
+	virtual void freePtr(void*);
+private:
 	MemoryManager();
 	virtual ~MemoryManager();
-	// virtual void* allocate(size_t){ return nullptr;};
-	// virtual void free(void*){};
-private:
+	MemoryManager(const MemoryManager&) = delete;
+	MemoryManager& operator=(const MemoryManager&) = delete;
+
 	void initSharedMemory();
 	void expandPoolSize();
 	void cleanUp();
 	void removeSharedMemory();
+
+	boost::interprocess::mapped_region mapped_region;
+	//char * internal_que_pool;
+	//MessageQueue* free_que_slot;
 };
 
 }  // namespace memhelp
