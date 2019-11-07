@@ -1,11 +1,13 @@
 #include <MemoryManager.h>
+#include <MessageQueue.h>
+#include <Message.h>
 
 #include <atomic>
 
 namespace
 {
-	static constexpr uint32_t size_of_shared_mem = {64 * 1024};
-	static uint32_t remaining_shared_mem = {64 * 1024};
+	static constexpr uint32_t size_of_shared_mem = {512 * 1024};
+	static uint32_t remaining_shared_mem = {512 * 1024};
 }
 
 namespace shmm
@@ -15,8 +17,10 @@ MemoryManager::MemoryManager()
 {
 	LOG_INFO_T(__func__, " Constructed.");
 
+	expandSharedMemory();
+	expandArenas<MessageQueue>(0, 3);
+	expandArenas<Message>(3, 5);
 	initSharedMemory();
-	expandPoolSize();
 }
 
 MemoryManager::~MemoryManager()
@@ -27,7 +31,7 @@ MemoryManager::~MemoryManager()
 	removeSharedMemory();
 }
 
-void MemoryManager::initSharedMemory()
+void MemoryManager::expandSharedMemory()
 {
 	removeSharedMemory();
 	boost::interprocess::shared_memory_object shared_memory(
@@ -35,13 +39,31 @@ void MemoryManager::initSharedMemory()
             SHARED_MEMORY,
             boost::interprocess::read_write);
     shared_memory.truncate(size_of_shared_mem);
-    mapped_region = boost::interprocess::mapped_region(shared_memory,
-    	boost::interprocess::read_write);
+    shared_memory_region.mapped_region = boost::interprocess::mapped_region(
+    	shared_memory, boost::interprocess::read_write);
+    shared_memory_region.last_known_addr = (char *)shared_memory_region.mapped_region.get_address();
 
     LOG_INFO_T(__func__, " Done for [shared_memory] object.");
-    LOG_INFO_T(__func__, " Actual size reserved for queues : "
+    LOG_INFO_T(__func__, " Actual size of shared memory reserved : "
     	<< size_of_shared_mem / 1000 << " kb / "
     	<< size_of_shared_mem << " bytes.");
+}
+
+void MemoryManager::initSharedMemory()
+{
+	for (unsigned i = 0; i < 5; i++)
+	{
+		for (unsigned j = 0; j < 3; j++)
+		{
+			memcpy(shared_memory_region.last_known_addr, memory_arenas[i].pools[j].pool, memory_arenas[i].pools[j].size_in_bytes);
+			shared_memory_region.last_known_addr += memory_arenas[i].pools[j].size_in_bytes;
+			remaining_shared_mem -= memory_arenas[i].pools[j].size_in_bytes;
+		}
+	}
+
+    LOG_INFO_T(__func__, " Actual size of shared memory remaining : "
+    	<< remaining_shared_mem / 1000 << " kb / "
+    	<< remaining_shared_mem << " bytes.");
 }
 
 void MemoryManager::removeSharedMemory()
@@ -51,45 +73,15 @@ void MemoryManager::removeSharedMemory()
 	LOG_INFO_T(__func__, " Done for [shared_memory] object.");
 }
 
-void MemoryManager::expandPoolSize()
-{
-	size_t size_of_message = (sizeof(Message) + MAX_SIZE_OF_MSG_DATA);
-	size_t size_of_queue = (sizeof(MessageQueue) + (MAX_NUM_OF_MSGS * size_of_message));
-
-	//internal_que_pool = (char *) malloc(MAX_NUM_OF_QUEUES * size_of_queue + 1);
-	//memset(internal_que_pool, 0, MAX_NUM_OF_QUEUES * size_of_queue + 1);
-
-	MessageQueue * que = (MessageQueue*) malloc(size_of_queue);
-	MessageQueue * tempPtr = que;
-
-	for (int i = 0; i < MAX_NUM_OF_QUEUES; i++)
-	{
-		que->next = (MessageQueue *) malloc(size_of_queue);
-		memcpy(((char *)mapped_region.get_address() + (i * size_of_queue)), tempPtr, size_of_queue);
-		remaining_shared_mem -= size_of_queue;
-		tempPtr = que->next;
-		free(que);
-		que = tempPtr;
-	}
-	free(tempPtr);
-
-	LOG_INFO_T(__func__, " Done for [shared_memory] object.");
-	LOG_INFO_T(__func__, " Actual size occupied by queues : "
-		<< (MAX_NUM_OF_QUEUES * size_of_queue) / 1000 << " kb / "
-		<< (MAX_NUM_OF_QUEUES * size_of_queue) << " bytes.");
-	LOG_INFO_T(__func__, " Remaining shared_memory : "
-		<< remaining_shared_mem / 1000 << " kb / "
-		<< remaining_shared_mem << " bytes.");
-}
-
-void* MemoryManager::allocate(size_t size)
-{
-
-}
-
 void MemoryManager::cleanUp()
 {
+	for (unsigned i = 0; i < 5; i++)
+	{
+		for (unsigned j = 0; j < 3; j++)
+	 		free(memory_arenas[i].pools[j].pool);
+	}
 
+	LOG_INFO_T(__func__, " Done.");
 }
 
 MemoryManager& MemoryManager::getInstance()
@@ -99,23 +91,3 @@ MemoryManager& MemoryManager::getInstance()
 }
 
 }  // namespace memhelp
-
-// void* operator new (size_t size)
-// {
-//     return gMemoryManager.allocate(size);
-// }
-
-// void* operator new[] (size_t size)
-// {
-//     return gMemoryManager.allocate(size);
-// }
-
-// void operator delete (void* pointerToDelete)
-// {
-//     gMemoryManager.free(pointerToDelete);
-// }
-
-// void operator delete[] (void* arrayToDelete)
-// {
-//     gMemoryManager.free(arrayToDelete);
-// }

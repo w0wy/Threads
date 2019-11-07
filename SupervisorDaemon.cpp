@@ -34,6 +34,8 @@ void SupervisorDaemon::operator()(char * argv[])
     int argv0size = strlen(argv[0]);
     strncpy(argv[0], "SupervisorDaemon", argv0size);
 
+
+    shmm::MemoryManager::getInstance();
     //while(true)
     //{
     //    sleep(1);
