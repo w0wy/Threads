@@ -14,10 +14,10 @@ struct Message
 	{
 		return sizeof(Message) + MAX_SIZE_OF_MSG_DATA;
 	}
-	
+
 	size_t      size_of_data;
     Message*    next;
-	uint32_t*   data;
+	char*   data;
 };
 
 #endif  // MESSAGE_H_

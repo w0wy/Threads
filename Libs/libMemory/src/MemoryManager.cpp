@@ -10,9 +10,6 @@ namespace
 	static uint32_t remaining_shared_mem = {512 * 1024};
 }
 
-namespace shmm
-{
-
 MemoryManager::MemoryManager()
 {
 	LOG_INFO_T(__func__, " Constructed.");
@@ -89,5 +86,3 @@ MemoryManager& MemoryManager::getInstance()
 	static MemoryManager instance;
 	return instance;
 }
-
-}  // namespace memhelp

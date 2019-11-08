@@ -8,7 +8,7 @@ struct MessageQueue
 {
 	static size_t SIZE()
 	{
-		return sizeof(MessageQueue) + (DEFAULT_NUM_OF_ELEMENTS * Message::SIZE());
+		return sizeof(MessageQueue); // + (DEFAULT_NUM_OF_ELEMENTS * Message::SIZE());
 	}
 
     uint32_t        messages_count;
@@ -21,15 +21,12 @@ struct MessageQueue
     void push(const Message*);
     Message * pop();
 
-    void* allocate()
-    {
-    	shmm::MemoryManager::getInstance().allocate<MessageQueue>();
-    }
-
-    void deallocate(MessageQueue* ptr)
-    {
-    	shmm::MemoryManager::getInstance().deallocate<MessageQueue>((void*)ptr);
-    }
+ //    void* operator new(size_t size)
+	// {
+ //    	LOG_INFO_T(__func__, "Size allocated is : " << size);
+ //    	void * p = ::new MessageQueue();
+ //    	return p;
+	// }
 };
 
 #endif  // MESSAGE_QUEUE_H

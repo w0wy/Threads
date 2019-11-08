@@ -13,9 +13,13 @@
 #include "ServiceRunner.h"
 #include "Utilities.h"
 
+#include "MessageQueue.h"
+
 #include <stdlib.h>
 #include <cstring>
 #include <signal.h>
+
+#include <chrono>
 
 namespace
 {
@@ -34,8 +38,6 @@ void SupervisorDaemon::operator()(char * argv[])
     int argv0size = strlen(argv[0]);
     strncpy(argv[0], "SupervisorDaemon", argv0size);
 
-
-    shmm::MemoryManager::getInstance();
     //while(true)
     //{
     //    sleep(1);

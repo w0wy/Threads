@@ -21,8 +21,6 @@ public:
     ~SupervisorDaemon() = default;
 
     void operator()(char * argv[]);
-
-    //static shmm::MemoryManager memory_manager;
 };
 
 }
