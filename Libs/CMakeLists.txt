@@ -6,7 +6,7 @@ project(Libs VERSION 1.0.0 DESCRIPTION "threads library")
 
 include(GNUInstallDirs)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lrt -fPIC")
 
 set(BOOST_INCLUDEDIR /usr/include/)

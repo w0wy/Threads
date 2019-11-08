@@ -8,6 +8,7 @@
 
 DEBUG="-DDEBUG=OFF"
 CODE_CHECK="-DCODE_CHECK=OFF"
+TEST="-DTEST=OFF"
 
 if [ ! -d "exec" ];
 	then
@@ -31,24 +32,37 @@ if [ $# -gt 0 ];
 			then
 				CODE_CHECK="-DCODE_CHECK=ON"
 		fi
+		
+		if [[ $* = *"--test"* ]];
+			then
+				TEST="-DTEST=ON"
+		fi
 
 		cd exec
-		cmake $DEBUG $CODE_CHECK ..
+		cmake $DEBUG $CODE_CHECK $TEST ..
 		make
 
 		if [[ $* == *"--mem-check=file"* ]];
 			then
-				valgrind --leak-check=full --trace-children=yes -s --log-file=ValgrindOutput.txt ./SupervisorDaemon
+				valgrind --leak-check=full --trace-children=yes --track-origins=yes --show-leak-kinds=all -s --log-file=ValgrindOutput.txt ./SupervisorDaemon
 				echo -e "-- \033[0;31mValgrind\033[0m results written in \033[0;32mexec/ValgrindOutput.txt\033[0m file!"
 		elif [[ $* == *"--mem-check=console"* ]] || [[ $* == *"--mem-check"* ]];
 			then
 				echo -e "-- \033[0;31mValgrind\033[0m results showing in the \033[0;32mconsole\033[0m!"
-				valgrind --leak-check=full --trace-children=yes -s ./SupervisorDaemon
+				valgrind --leak-check=full --trace-children=yes --track-origins=yes --show-leak-kinds=all -s ./SupervisorDaemon
 		fi
 		cd ..
+		if [ $TEST == "-DTEST=ON" ]
+			then
+				./exec/test/SupervisorDaemon-test
+		fi
 else
 	cd exec
-	cmake $DEBUG $CODE_CHECK ..
+	cmake $DEBUG $CODE_CHECK $TEST ..
 	make
 	cd ..
+	if [ $TEST == "-DTEST=ON"]
+		then
+			./exec/test/SupervisorDaemon-test
+	fi
 fi
