@@ -14,7 +14,9 @@ find_package(Boost 1.53 REQUIRED ${BOOST_COMPONENTS})
 
 option(DEBUG "Turn on debug symbols and debug logs" OFF)
 option(CODE_CHECK "Turn on code warnings check" OFF)
-option(TEST "Turn on build for tests" OFF)
+option(TEST_UTILS "Turn on build for tests of libUtils" OFF)
+option(TEST_DAEMON "Turn on build for tests of Daemon" OFF)
+option(TEST_MEMORY "Turn on build for tests of libMemory" OFF)
 
 if (DEBUG)
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb3")
@@ -25,7 +27,7 @@ if (CODE_CHECK)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-pie -Wall -Wextra -pedantic-errors") #-Werror")
 endif()
 
-if (TEST)
+if (TEST_DAEMON)
 	add_subdirectory(Externals/googletest)
 	add_subdirectory(test)
 endif()
@@ -57,7 +59,7 @@ target_link_libraries(SupervisorDaemon
 	services
 	memory)
 
-if (TEST)
+if (TEST_DAEMON)
 	add_library(SupervisorDaemon-static STATIC
 		${SOURCE_FILES_DAEMON})
 

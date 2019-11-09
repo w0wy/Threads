@@ -34,6 +34,15 @@ set_target_properties(utils PROPERTIES LINKER_LANGUAGE CXX)
 
 target_include_directories(utils PRIVATE libUtils/include/)
 
+if (TEST_UTILS)
+	add_library(utils-static STATIC
+		${SOURCE_FILES_UTILS_LIBRARY}
+	)
+	include_directories(../Externals/googletest)
+	add_subdirectory(libUtils/test/)
+	target_include_directories(utils-static PRIVATE libUtils/include/)
+endif()
+
 ####################################
 #            MEMORY LIB            #
 ####################################
@@ -52,6 +61,18 @@ target_include_directories(memory PRIVATE
 	libMemory/include/
 	)
 target_link_libraries(memory utils)
+
+if (TEST_MEMORY)
+	add_library(memory-static STATIC
+		${SOURCE_FILES_MEMORY_LIBRARY}
+	)
+	include_directories(../External/googletest)
+	add_subdirectory(libMemory/test/)
+	target_link_libraries(memory-static utils)
+	target_include_directories(memory-static PRIVATE
+		libMemory/include/
+		libUtils/include/)
+endif()
 
 ####################################
 #          SERVICES LIB            #
