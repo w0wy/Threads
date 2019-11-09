@@ -5,10 +5,15 @@
 #--clean
 #--code-check
 #--mem-check
+#--test-daemon
+#--test-utils
+#--test-memory
 
 DEBUG="-DDEBUG=OFF"
 CODE_CHECK="-DCODE_CHECK=OFF"
-TEST="-DTEST=OFF"
+TEST_DAEMON="-DTEST_DAEMON=OFF"
+TEST_UTILS="-DTEST_UTILS=OFF"
+TEST_MEMORY="-DTEST_MEMORY=OFF"
 
 if [ ! -d "exec" ];
 	then
@@ -33,13 +38,23 @@ if [ $# -gt 0 ];
 				CODE_CHECK="-DCODE_CHECK=ON"
 		fi
 		
-		if [[ $* = *"--test"* ]];
+		if [[ $* = *"--test-daemon"* ]];
 			then
-				TEST="-DTEST=ON"
+				TEST_DAEMON="-DTEST_DAEMON=ON"
+		fi
+		
+		if [[ $* = *"--test-utils"* ]];
+			then
+				TEST_UTILS="-DTEST_UTILS=ON"
+		fi
+
+		if [[ $* = *"--test-memory"* ]];
+			then
+				TEST_MEMORY="-DTEST_MEMORY=ON"
 		fi
 
 		cd exec
-		cmake $DEBUG $CODE_CHECK $TEST ..
+		cmake $DEBUG $CODE_CHECK $TEST_DAEMON $TEST_UTILS $TEST_MEMORY ..
 		make
 
 		if [[ $* == *"--mem-check=file"* ]];
@@ -52,17 +67,17 @@ if [ $# -gt 0 ];
 				valgrind --leak-check=full --trace-children=yes --track-origins=yes --show-leak-kinds=all -s ./SupervisorDaemon
 		fi
 		cd ..
-		if [ $TEST == "-DTEST=ON" ]
-			then
-				./exec/test/SupervisorDaemon-test
-		fi
+		#if [ $TEST == "-DTEST=ON" ]
+		#	then
+		#		./exec/test/SupervisorDaemon-test
+		#fi
 else
 	cd exec
-	cmake $DEBUG $CODE_CHECK $TEST ..
+	cmake $DEBUG $CODE_CHECK $TEST_DAEMON $TEST_UTILS $TEST_MEMORY..
 	make
 	cd ..
-	if [ $TEST == "-DTEST=ON"]
-		then
-			./exec/test/SupervisorDaemon-test
-	fi
+	#if [ $TEST == "-DTEST=ON"]
+	#	then
+	#		./exec/test/SupervisorDaemon-test
+	#fi
 fi
