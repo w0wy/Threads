@@ -10,8 +10,13 @@ set(INCLUDE_FILES_MEMORY_MANAGER
 	../include/
 )
 
+set(INCLUDE_FILES_UTILS_LIB
+	../../libUtils/include/
+)
+
 include_directories(
 	${INCLUDE_FILES_MEMORY_MANAGER}
+	${INCLUDE_FILES_UTILS_LIB}
 )
 
 add_executable(memory-test
@@ -21,6 +26,7 @@ add_executable(memory-test
 add_test(NAME memory-test COMMAND memory-test)
 target_link_libraries(memory-test PUBLIC
 	memory-static
+	utils
 	gtest
 	pthread
 )

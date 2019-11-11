@@ -2,13 +2,12 @@
 #define MESSAGE_QUEUE_H
 
 #include "Message.h"
-#include "MemoryManager.h"
 
 struct MessageQueue
 {
 	static size_t SIZE()
 	{
-		return sizeof(MessageQueue); // + (DEFAULT_NUM_OF_ELEMENTS * Message::SIZE());
+		return sizeof(MessageQueue);
 	}
 
     uint32_t        messages_count;
@@ -20,13 +19,6 @@ struct MessageQueue
 
     void push(const Message*);
     Message * pop();
-
- //    void* operator new(size_t size)
-	// {
- //    	LOG_INFO_T(__func__, "Size allocated is : " << size);
- //    	void * p = ::new MessageQueue();
- //    	return p;
-	// }
 };
 
 #endif  // MESSAGE_QUEUE_H

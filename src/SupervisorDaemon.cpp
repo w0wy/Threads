@@ -37,10 +37,10 @@ void SupervisorDaemon::operator()(char * argv[])
     int argv0size = strlen(argv[0]);
     strncpy(argv[0], "SupervisorDaemon", argv0size);
 
-    //while(true)
-    //{
-    //    sleep(1);
-    //}
+    while(true)
+    {
+        sleep(1);
+    }
 }
 
 }  // namespace sprvs

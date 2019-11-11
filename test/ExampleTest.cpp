@@ -13,7 +13,6 @@ TEST_F(SomeExampleTestFixture, SomeExampleTestCase)
 	EXPECT_EQ(MemoryManager::getInstance().allocate<MessageQueue>(), nullptr);
 }
 
-
 TEST(SomeExampleSoloTest, SomeExampleTestCase)
 {
 	EXPECT_NE(MemoryManager::getInstance().allocate<MessageQueue>(), nullptr);

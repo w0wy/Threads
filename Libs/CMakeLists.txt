@@ -17,6 +17,8 @@ find_package(Boost 1.53 REQUIRED ${BOOST_COMPONENTS})
 
 if (DEBUG)
 	add_definitions(-D__DEBUG__)
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb3")
+	set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 ####################################

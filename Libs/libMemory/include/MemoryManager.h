@@ -20,6 +20,13 @@ struct MemPool
 	char* free_slot;
 };
 
+// TODO maybe specialize arenas for different types :
+// ARENA[0->3) for MessageQueues
+// ARENA[3->5) for Message
+// ARENA[6->7) for primitive types
+// ETC
+
+// maybe with sfinae 
 struct MemArena
 {
 	uint32_t pools_in_use;
@@ -35,6 +42,7 @@ struct MemArena
 			{
 				pools[i].remaining_blocks--;
 				char * toReturn = pools[i].free_slot;
+
 				if (pools[i].remaining_blocks == 0)
 				{
 					pools[i].free_slot = nullptr;
@@ -48,7 +56,9 @@ struct MemArena
 				}
 				else
 				{
-					pools[i].free_slot = (char*) ((T*)pools[i].free_slot)->next;
+					pools[i].free_slot = (char*) (((T*)pools[i].free_slot)->next);
+					// TODO : BIG PROBLEM
+					// both message queue and message might have same size but "MSGQUEUE->next might not be the same with MSG->next" 
 				}
 
 				return toReturn;
@@ -96,7 +106,7 @@ public:
 	template<typename T>
 	T* allocate()
 	{
-		for(unsigned i = 0; i < 5 /*arenas*/; i++)
+		for(unsigned i = 0; i < 5; i++)
 		{
 			if (memory_arenas[i].memory_block_size >= T::SIZE())
 			{
@@ -112,7 +122,7 @@ public:
 	template <typename T>
 	void deallocate(T* ptrToDelete)
 	{
-		for (unsigned i = 0; i < 3; i++)
+		for (unsigned i = 0; i < 5; i++)
 		{
 			if (memory_arenas[i].memory_block_size >= T::SIZE() &&
 				memory_arenas[i].deallocate<T>(ptrToDelete, T::SIZE()))
@@ -138,7 +148,6 @@ private:
 		{
 			for (unsigned j = 0; j < 3; j++)
 			{
-
 				memory_arenas[i].pools[j].size_in_bytes = size_in_bytes;
 				memory_arenas[i].pools[j].remaining_blocks = DEFAULT_NUM_OF_ELEMENTS;
 				memory_arenas[i].pools[j].pool = (char *) malloc(memory_arenas[i].pools[j].size_in_bytes);
@@ -154,10 +163,10 @@ private:
 					head = (T*)head->next;
 				}
 
-				LOG_INFO_T(__func__, "Arena [" << i << "].pools[" << j << "] has size of : " << size_in_bytes
+				LOG_DEBUG_T(__func__, "Arena [" << i << "].pools[" << j << "] has size of : " << size_in_bytes
 					<< " bytes with " << DEFAULT_NUM_OF_ELEMENTS << " blocks of " << T::SIZE() << " bytes. Starting address : "
 					<< (uintptr_t)memory_arenas[i].pools[j].pool << " free slot : " << (uintptr_t)memory_arenas[i].pools[j].free_slot
-					<< " and end address : " << (uintptr_t) (memory_arenas[i].pools[j].pool + size_in_bytes) << " .")
+					<< " and end address : " << (uintptr_t) (memory_arenas[i].pools[j].pool + size_in_bytes) << " .");
 			}
 		}
 
@@ -177,6 +186,7 @@ private:
 template <typename T>
 static T* allocate()
 {
+
 	return (T*) MemoryManager::getInstance().allocate<T>();
 }
 

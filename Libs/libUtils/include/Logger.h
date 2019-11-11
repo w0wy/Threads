@@ -86,27 +86,27 @@ private:
         __LINE__                                     \
     );    
 
-Logger& Debug() {
+inline Logger& Debug() {
     static Logger logger_dbg(Level::Debug);
     return logger_dbg;
 }
 
-Logger& Info() {
+inline Logger& Info() {
     static Logger logger_info(Level::Info);
     return logger_info;
 }
 
-Logger& Warning() {
+inline Logger& Warning() {
     static Logger logger_wrn(Level::Warning);
     return logger_wrn;
 }
 
-Logger& Error() {
+inline Logger& Error() {
     static Logger logger_err(Level::Error);
     return logger_err;
 }
 
-Logger& Fatal() {
+inline Logger& Fatal() {
     static Logger logger_fatal(Level::Fatal);
     return logger_fatal;
 }
