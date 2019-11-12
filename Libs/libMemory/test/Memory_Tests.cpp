@@ -74,7 +74,7 @@ TEST_F(MemoryManagerTests, ShouldHaveCorrectValues)
 	for (unsigned msg_que = 0; msg_que < 3; msg_que++)
 	{
 		queues[msg_que] = instance.allocate<MessageQueue>();
-		queues[msg_que]->messages_count++;
+		queues[msg_que]->messages_count=1;
 		queues[msg_que]->data = instance.allocate<Message>();
 		// TODO add allocate<base types> -> sfinae in memory manager to check if "SIZE()" function exists
 		// specialize allocate and deallocate functions for 
@@ -101,12 +101,6 @@ TEST_F(MemoryManagerTests, ShouldHaveCorrectValues)
 		EXPECT_EQ(queues[msg_que]->front_msg, queues[msg_que]->data);
 		EXPECT_EQ(queues[msg_que]->rear_msg, queues[msg_que]->data);
 	}
-
-	EXPECT_EQ(queues[0]->next, queues[1]);
-	EXPECT_EQ(queues[1]->next, queues[2]);
-
-	EXPECT_EQ(queues[0]->data->next, queues[1]->data);
-	EXPECT_EQ(queues[1]->data->next, queues[2]->data);
 
 	for (unsigned msg_que = 0; msg_que < 3; msg_que++)
 	{	

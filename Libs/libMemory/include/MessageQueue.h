@@ -5,15 +5,9 @@
 
 struct MessageQueue
 {
-	static size_t SIZE()
-	{
-		return sizeof(MessageQueue);
-	}
-
     uint32_t        messages_count;
     Message*        front_msg;
     Message*        rear_msg;
-    MessageQueue* 	next;
     size_t			size_of_data;
     Message*		data;
 

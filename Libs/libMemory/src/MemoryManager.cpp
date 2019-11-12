@@ -15,8 +15,9 @@ MemoryManager::MemoryManager()
 	LOG_INFO_T(__func__, " Constructed.");
 
 	expandSharedMemory();
-	expandArenas<MessageQueue>(0, 3);
-	expandArenas<Message>(3, 5);
+	expandArenas(0, 2, 64);
+	expandArenas(2, 4, 128);
+	expandArenas(4, 5, 256);
 	initSharedMemory();
 }
 
