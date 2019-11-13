@@ -124,10 +124,10 @@ TEST_F(MemoryManagerTests, ShouldPerformFaster)
 	auto t1custom = std::chrono::high_resolution_clock::now();
 	for (unsigned rep = 0; rep < 5; rep++)
 	{
-		for (unsigned allocs = 0; allocs < 90; allocs++)
+		for (unsigned allocs = 0; allocs < 100; allocs++)
 		{
 			auto msg = instance.allocate<MessageQueue>();
-			instance.deallocate(msg);
+			//instance.deallocate(msg);
 		}
 	}
 	auto t2custom = std::chrono::high_resolution_clock::now();
@@ -137,10 +137,10 @@ TEST_F(MemoryManagerTests, ShouldPerformFaster)
 	auto t1new = std::chrono::high_resolution_clock::now();
 	for (unsigned rep = 0; rep < 5; rep++)
 	{
-		for (unsigned allocs = 0; allocs < 90; allocs++)
+		for (unsigned allocs = 0; allocs < 100; allocs++)
 		{
 			auto msg = new MessageQueue();
-			delete msg;
+			//delete msg;
 		}
 		
 	}

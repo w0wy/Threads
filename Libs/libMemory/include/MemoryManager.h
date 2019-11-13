@@ -4,19 +4,8 @@
 #define SHARED_MEMORY "shared_memory"
 #define DEFAULT_NUM_OF_ELEMENTS 10
 
-#ifndef ARENAS
-#define ARENAS 5
-#endif 
-
-#ifndef POOLS_PER_ARENA
-#define POOLS_PER_ARENA 3
-#endif
-
 #include <sys/types.h>
-#include <atomic>
 #include <utility>
-
-#include "Logger.h"
 
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
@@ -36,7 +25,6 @@ struct MemPool
 {
 	size_t size_in_bytes;
 	size_t remaining_blocks;
-	size_t contiguous_free;
 	char* pool;
 	char* free_slot;
 };
@@ -47,9 +35,9 @@ struct MemArena
 	size_t memory_block_size;
 	MemPool pools[3];
 
-	char* allocate(size_t sz)
+	inline char* allocate(size_t sz)
 	{
-		for (unsigned i = 0; i < POOLS_PER_ARENA; i++)
+		for (unsigned i = 0; i < 3; i++)
 		{
 			if (pools[i].remaining_blocks >= 1)
 			{
@@ -70,10 +58,11 @@ struct MemArena
 		return nullptr;
 	}
 
-	bool deallocate(void * ptrToDelete)
+	inline bool deallocate(void * ptrToDelete)
 	{
-		for (unsigned i = 0; i < POOLS_PER_ARENA; i++)
+		for (unsigned i = 0; i < 3; i++)
 		{
+			// TODO - try to find a better way for this :/
 			if ((char*)ptrToDelete >= pools[i].pool &&
 				(char*)ptrToDelete <= (pools[i].pool + pools[i].size_in_bytes))
 			{
@@ -96,12 +85,16 @@ struct MemArena
 class MemoryManager
 {
 public:
-	static MemoryManager& getInstance();
+	static inline MemoryManager& getInstance()
+	{
+		static MemoryManager instance;
+		return instance;
+	}
 
 	template<typename T>
 	inline T* allocate()
 	{
-		for(unsigned i = 0; i < ARENAS; i++)
+		for(unsigned i = 0; i < 5; i++)
 		{
 			if (memory_arenas[i].memory_block_size >= sizeof(T))
 			{
@@ -111,7 +104,7 @@ public:
 			}
 		}
 
-		LOG_INFO_T(__func__, "Could not allocate ptr of type " << typeid(T).name()
+		LOG_DEBUG_T(__func__, "Could not allocate ptr of type " << typeid(T).name()
 			<< " and size " << sizeof(T));
 		return nullptr;
 	}
@@ -119,7 +112,7 @@ public:
 	template <typename T>
 	inline void deallocate(T* ptrToDelete)
 	{
-		for (unsigned i = 0; i < ARENAS; i++)
+		for (unsigned i = 0; i < 5; i++)
 		{
 			if (memory_arenas[i].memory_block_size >= sizeof(T) &&
 				memory_arenas[i].deallocate(ptrToDelete))
@@ -128,7 +121,7 @@ public:
 			}
 		}
 
-		LOG_INFO_T(__func__, "Could not deallocate ptr 0x" << (uintptr_t)ptrToDelete
+		LOG_DEBUG_T(__func__, "Could not deallocate ptr 0x" << (uintptr_t)ptrToDelete
 			<< "of type " << typeid(T).name());
 	}
 private:
@@ -145,7 +138,7 @@ private:
 	void removeSharedMemory();
 
 	SharedMem shared_memory_region;
-	MemArena memory_arenas[ARENAS];
+	MemArena memory_arenas[5];
 };
 
 template <typename T>

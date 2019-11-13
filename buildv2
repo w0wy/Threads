@@ -1,0 +1,192 @@
+#!/bin/bash
+
+#POSSIBLE OPTIONS
+#--debug
+#--clean
+#--code-check
+#--mem-check
+#--test-daemon
+#--test-utils
+#--test-memory
+
+TARGET=""
+
+DEBUG="-DDEBUG=OFF"
+CODE_CHECK="-DCODE_CHECK=OFF"
+
+TEST_DAEMON="-DTEST_DAEMON=OFF"
+TEST_DAEMON_RUN="OFF"
+
+TEST_UTILS="-DTEST_UTILS=OFF"
+TEST_UTILS_RUN="OFF"
+
+TEST_MEMORY="-DTEST_MEMORY=OFF"
+TEST_MEMORY_RUN="OFF"
+
+TEST_XCOMM="-DTEST_XCOMM=OFF"
+TEST_XCOMM_RUN="OFF"
+
+RUN_MEMCHECK="OFF";
+MEMCHECK_FILE=""
+
+RUN_TESTS="OFF";
+
+function run_cmake
+{
+	pushd exec
+	{
+		cmake $DEBUG $CODE_CHECK $TEST_DAEMON $TEST_UTILS $TEST_MEMORY $TEST_XCOMM ..
+	}
+	popd
+}
+
+function run_make
+{
+	pushd exec
+	{
+		make $TARGET
+	}
+	popd
+}
+
+function execute_actions
+{
+	if [[ $TEST_XCOMM_RUN == "ON" ]];
+		then
+			./exec/Libs/libXComm/test/xcomm-test
+	fi
+	
+	if [[ $TEST_MEMORY_RUN == "ON" ]];
+		then
+			./exec/Libs/libMemory/test/memory-test
+	fi
+	
+	if [[ $TEST_UTILS_RUN == "ON" ]];
+		then
+			./exec/Libs/libUtils/test/utils-test
+	fi
+		
+	if [[ $TEST_DAEMON_RUN == "ON" ]];
+		then
+			./exec/test/SupervisorDaemon-test
+	fi
+		
+	if [[ $RUN_MEMCHECK == "ON" ]];
+		then
+			if [[ -z $MEMCHECK_FILE ]];
+				then
+					echo -e "-- \033[0;31mValgrind\033[0m results showing in the \033[0;32mconsole\033[0m!"
+					valgrind --leak-check=full --trace-children=yes --track-origins=yes --show-leak-kinds=all -s ./exec/SupervisorDaemon
+			else
+				valgrind --leak-check=full --trace-children=yes --track-origins=yes --show-leak-kinds=all -s --log-file=$MEMCHECK_FILE ./exec/SupervisorDaemon
+				echo -e "-- \033[0;31mValgrind\033[0m results written in \033[0;32mexec/$MEMCHECK_FILE\033[0m file!"
+			fi
+	fi
+}
+
+function print_help
+{
+	echo -e "TODO help page"
+}
+
+if [ ! -d "exec" ];
+	then
+		mkdir exec
+fi
+
+if [ $# -gt 0 ];
+	then
+		for i in "$@"
+		do
+			case $i in
+			-c|--clean)
+				rm -r -f exec
+				mkdir exec
+				shift
+				;;
+			-tg=*|--target=*)
+				TARGET="${i#*=}"
+				shift
+				;;
+			-d|--debug)
+				DEBUG="-DDEBUG=ON"
+				shift
+				;;
+			-cc|--code-check)
+				CODE_CHECK="-DCODE_CHECK=ON"
+				shift
+				;;
+			-t|--test)
+				TEST_DAEMON="-DTEST_DAEMON=ON"
+				TEST_UTILS="-DTEST_UTILS=ON"
+				TEST_MEMORY="-DTEST_MEMORY=ON"
+				TEST_XCOMM="-DTEST_XCOMM=ON"
+				shift
+				;;
+			-tr|--test-run)
+				TEST_DAEMON="-DTEST_DAEMON=ON"
+				TEST_DAEMON_RUN="ON"
+				TEST_UTILS="-DTEST_UTILS=ON"
+				TEST_UTILS_RUN="ON"
+				TEST_MEMORY="-DTEST_MEMORY=ON"
+				TEST_MEMORY_RUN="ON"
+				TEST_XCOMM="-DTEST_XCOMM=ON"
+				TEST_XCOMM_RUN="ON"
+				shift
+				;;
+			-td|--test-daemon)
+				TEST_DAEMON="-DTEST_DAEMON=ON"
+				shift
+				;;
+			-tdr|--test-daemon-run)
+				TEST_DAEMON="-DTEST_DAEMON=ON"
+				TEST_DAEMON_RUN="ON"
+				shift
+				;;
+			-tu|--test-utils)
+				TEST_UTILS="-DTEST_UTILS=ON"
+				shift
+				;;
+			-tur|--test-utils-run)
+				TEST_UTILS="-DTEST_UTILS=ON"
+				TEST_UTILS_RUN="ON"
+				shift
+				;;
+			-tm|--test-memory)
+				shift
+				TEST_MEMORY="-DTEST_MEMORY=ON"
+				;;
+			-tm-r|--test-memory-run)
+				shift
+				TEST_MEMORY="-DTEST_MEMORY=ON"
+				TEST_MEMORY_RUN="ON"
+				;;
+			-tx|--test-xcomm)
+				shift
+				TEST_XCOMM="-DTEST_XCOMM=ON"
+				;;
+			-tx-r|--test-xcomm-run)
+				shift
+				TEST_XCOMM="-DTEST_XCOMM=ON"
+				TEST_XCOMM_RUN="ON"
+				;;
+			-m|--mem-check)
+				RUN_MEMCHECK="ON"
+				shift
+				;;
+			-m=*|--mem-check=*)
+				RUN_MEMCHECK="ON"
+				MEM_CHECK_FILE="${i#*=}"
+				shift
+				;;
+			*)
+				;;
+			esac
+		done
+		run_cmake
+		run_make
+		execute_actions
+else
+	run_cmake
+	run_make
+fi

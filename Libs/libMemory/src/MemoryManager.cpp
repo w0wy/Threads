@@ -1,4 +1,5 @@
-#include <MemoryManager.h>
+#include "MemoryManager.h"
+#include "Logger.h"
 
 namespace
 {
@@ -27,16 +28,10 @@ MemoryManager::~MemoryManager()
 
 void MemoryManager::expandArenas(uint32_t begin, uint32_t end, size_t sz)
 {
-	if (begin < 0 or end > ARENAS)
-	{
-		LOG_ERR_T(__func__, "Arenas range is invalid : [" << begin << " - " << end << ")");
-		return;
-	}
-
 	unsigned size_in_bytes = DEFAULT_NUM_OF_ELEMENTS * sz;
 	for (unsigned i = begin; i < end; i++)
 	{
-		for (unsigned j = 0; j < POOLS_PER_ARENA; j++)
+		for (unsigned j = 0; j < 3; j++)
 		{
 			memory_arenas[i].pools[j].size_in_bytes = size_in_bytes;
 			memory_arenas[i].pools[j].remaining_blocks = DEFAULT_NUM_OF_ELEMENTS;
@@ -86,9 +81,9 @@ void MemoryManager::expandSharedMemory()
 
 void MemoryManager::initSharedMemory()
 {
-	for (unsigned i = 0; i < ARENAS; i++)
+	for (unsigned i = 0; i < 5; i++)
 	{
-		for (unsigned j = 0; j < POOLS_PER_ARENA; j++)
+		for (unsigned j = 0; j < 3; j++)
 		{
 			memcpy(shared_memory_region.last_known_addr, memory_arenas[i].pools[j].pool, memory_arenas[i].pools[j].size_in_bytes);
 			shared_memory_region.last_known_addr += memory_arenas[i].pools[j].size_in_bytes;
@@ -110,17 +105,11 @@ void MemoryManager::removeSharedMemory()
 
 void MemoryManager::cleanUp()
 {
-	for (unsigned i = 0; i < ARENAS; i++)
+	for (unsigned i = 0; i < 5; i++)
 	{
-		for (unsigned j = 0; j < POOLS_PER_ARENA; j++)
+		for (unsigned j = 0; j < 3; j++)
 	 		free(memory_arenas[i].pools[j].pool);
 	}
 
 	LOG_INFO_T(__func__, " Done.");
-}
-
-MemoryManager& MemoryManager::getInstance()
-{
-	static MemoryManager instance;
-	return instance;
 }

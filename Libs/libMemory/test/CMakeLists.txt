@@ -12,6 +12,8 @@ set(INCLUDE_FILES_MEMORY_MANAGER
 
 set(INCLUDE_FILES_UTILS_LIB
 	../../libUtils/include/
+	../../libXComm/include/
+	../../libXComm/include/interfaces/
 )
 
 include_directories(
