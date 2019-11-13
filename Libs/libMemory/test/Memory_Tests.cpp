@@ -10,7 +10,7 @@ struct MemoryManagerTests : public testing::Test
 	void TearDown(){};
 };
 
-TEST_F(MemoryManagerTests, ShouldReturnInstance)
+TEST_F(MemoryManagerTests, ShouldReturnSameInstance)
 {
 	auto& instance = MemoryManager::getInstance();
 

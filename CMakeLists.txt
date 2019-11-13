@@ -19,7 +19,7 @@ option(TEST_DAEMON "Turn on build for tests of Daemon" OFF)
 option(TEST_MEMORY "Turn on build for tests of libMemory" OFF)
 
 if (DEBUG)
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb3")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb3 -O0")
 	set(CMAKE_BUILD_TYPE Debug)
 endif()
 
@@ -44,6 +44,8 @@ set(LIBS_INCLUDE_DIRS
 	Libs/libMemory/include/
 	Libs/libServices/include/
 	Libs/libUtils/include/
+	Libs/libXComm/include/
+	Libs/libXComm/include/interfaces/
 )
 
 include_directories(
@@ -57,7 +59,8 @@ add_executable(SupervisorDaemon
 target_link_libraries(SupervisorDaemon
 	utils
 	services
-	memory)
+	memory
+	xcomm)
 
 if (TEST_DAEMON)
 	add_library(SupervisorDaemon-static STATIC
@@ -66,5 +69,6 @@ if (TEST_DAEMON)
 	target_link_libraries(SupervisorDaemon-static
 		utils
 		services
-		memory)
+		memory
+		xcomm)
 endif()

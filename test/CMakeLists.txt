@@ -8,6 +8,7 @@ set(TEST_SOURCE_FILES
 
 set(INCLUDE_FILES_DAEMON
 	../include/
+	../src/
 )
 
 #to be removed

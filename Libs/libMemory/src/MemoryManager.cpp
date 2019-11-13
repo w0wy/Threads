@@ -1,8 +1,4 @@
 #include <MemoryManager.h>
-#include <MessageQueue.h>
-#include <Message.h>
-
-#include <atomic>
 
 namespace
 {
@@ -29,6 +25,47 @@ MemoryManager::~MemoryManager()
 	removeSharedMemory();
 }
 
+void MemoryManager::expandArenas(uint32_t begin, uint32_t end, size_t sz)
+{
+	if (begin < 0 or end > ARENAS)
+	{
+		LOG_ERR_T(__func__, "Arenas range is invalid : [" << begin << " - " << end << ")");
+		return;
+	}
+
+	unsigned size_in_bytes = DEFAULT_NUM_OF_ELEMENTS * sz;
+	for (unsigned i = begin; i < end; i++)
+	{
+		for (unsigned j = 0; j < POOLS_PER_ARENA; j++)
+		{
+			memory_arenas[i].pools[j].size_in_bytes = size_in_bytes;
+			memory_arenas[i].pools[j].remaining_blocks = DEFAULT_NUM_OF_ELEMENTS;
+			memory_arenas[i].pools[j].pool = (char *) malloc(memory_arenas[i].pools[j].size_in_bytes);
+			memory_arenas[i].pools[j].free_slot = memory_arenas[i].pools[j].pool;
+
+			memory_arenas[i].memory_block_size = sz;
+			memory_arenas[i].pools_in_use++;
+
+			MemBlock* head = (MemBlock*)(memory_arenas[i].pools[j].pool);
+			for (unsigned k = 0; k < DEFAULT_NUM_OF_ELEMENTS ; k ++)
+			{
+				head->next = (MemBlock*)((char *)head + sz);
+				head = (MemBlock*)head->next;
+			}
+
+			LOG_DEBUG_T(__func__, "Arena [" << i << "].pools[" << j << "] has size of : " << size_in_bytes
+				<< " bytes with " << DEFAULT_NUM_OF_ELEMENTS << " blocks of " << sz << " bytes. Starting address : 0x"
+				<< (uintptr_t)memory_arenas[i].pools[j].pool << " free slot : 0x" << (uintptr_t)memory_arenas[i].pools[j].free_slot
+				<< " and end address : 0x" << (uintptr_t) (memory_arenas[i].pools[j].pool + size_in_bytes) << " .");
+		}
+	}
+
+	LOG_INFO_T(__func__, "Done for arenas [" << begin << " to " << end << ") with full size of : "
+		<< size_in_bytes / 1000 << " kb / "
+		<< size_in_bytes << " bytes and blocks of size : "
+		<< sz);
+}
+
 void MemoryManager::expandSharedMemory()
 {
 	removeSharedMemory();
@@ -49,9 +86,9 @@ void MemoryManager::expandSharedMemory()
 
 void MemoryManager::initSharedMemory()
 {
-	for (unsigned i = 0; i < 5; i++)
+	for (unsigned i = 0; i < ARENAS; i++)
 	{
-		for (unsigned j = 0; j < 3; j++)
+		for (unsigned j = 0; j < POOLS_PER_ARENA; j++)
 		{
 			memcpy(shared_memory_region.last_known_addr, memory_arenas[i].pools[j].pool, memory_arenas[i].pools[j].size_in_bytes);
 			shared_memory_region.last_known_addr += memory_arenas[i].pools[j].size_in_bytes;
@@ -73,9 +110,9 @@ void MemoryManager::removeSharedMemory()
 
 void MemoryManager::cleanUp()
 {
-	for (unsigned i = 0; i < 5; i++)
+	for (unsigned i = 0; i < ARENAS; i++)
 	{
-		for (unsigned j = 0; j < 3; j++)
+		for (unsigned j = 0; j < POOLS_PER_ARENA; j++)
 	 		free(memory_arenas[i].pools[j].pool);
 	}
 

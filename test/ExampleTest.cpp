@@ -1,6 +1,13 @@
 #include "gtest/gtest.h"
-#include "MemoryManager.h"
-#include "MessageQueue.h"
+#include "SupervisorDaemon.h"
+#include "SupervisorDaemon.cpp"
+
+#define RUN_DAEMON "\
+	#!/bin/bash \n\
+	echo \"Starting services!\" \n\
+	cd /var/fpwork/fduralia/masterpiece/Threads/exec/ \n\
+	./SupervisorDaemon \n\
+	"
 
 struct SomeExampleTestFixture : public testing::Test
 {
@@ -10,10 +17,20 @@ struct SomeExampleTestFixture : public testing::Test
 
 TEST_F(SomeExampleTestFixture, SomeExampleTestCase)
 {
-	EXPECT_EQ(MemoryManager::getInstance().allocate<MessageQueue>(), nullptr);
-}
+	std::cout << "damn son \n\n";
+	pid_t pid, sid;
 
-TEST(SomeExampleSoloTest, SomeExampleTestCase)
-{
-	EXPECT_NE(MemoryManager::getInstance().allocate<MessageQueue>(), nullptr);
+	pid = fork();
+
+    if (pid > 0) { 
+    	EXPECT_EQ(1,1);
+    	std::cout << "current_process \n\n";
+    }
+
+    if (pid < 0) { exit(EXIT_FAILURE); }
+
+    if (pid == 0)
+    {
+    	system(RUN_DAEMON);
+    }
 }

@@ -37,6 +37,9 @@ void SupervisorDaemon::operator()(char * argv[])
     int argv0size = strlen(argv[0]);
     strncpy(argv[0], "SupervisorDaemon", argv0size);
 
+    // int *foo = (int*)-1;
+    // printf("%d\n", *foo); // segfault
+
     while(true)
     {
         sleep(1);
@@ -83,5 +86,5 @@ int main(int argc, char * argv[])
     // Starting daemon
     daemon(argv);
 
-    return 0;
+    return 1;
 }

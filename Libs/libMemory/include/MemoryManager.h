@@ -4,6 +4,14 @@
 #define SHARED_MEMORY "shared_memory"
 #define DEFAULT_NUM_OF_ELEMENTS 10
 
+#ifndef ARENAS
+#define ARENAS 5
+#endif 
+
+#ifndef POOLS_PER_ARENA
+#define POOLS_PER_ARENA 3
+#endif
+
 #include <sys/types.h>
 #include <atomic>
 #include <utility>
@@ -12,6 +20,12 @@
 
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
+
+struct SharedMem
+{
+	boost::interprocess::mapped_region mapped_region;
+	char* last_known_addr;
+};
 
 struct MemBlock
 {
@@ -35,7 +49,7 @@ struct MemArena
 
 	char* allocate(size_t sz)
 	{
-		for (unsigned i = 0; i < 3; i++)
+		for (unsigned i = 0; i < POOLS_PER_ARENA; i++)
 		{
 			if (pools[i].remaining_blocks >= 1)
 			{
@@ -58,7 +72,7 @@ struct MemArena
 
 	bool deallocate(void * ptrToDelete)
 	{
-		for (unsigned i = 0; i < 3; i++)
+		for (unsigned i = 0; i < POOLS_PER_ARENA; i++)
 		{
 			if ((char*)ptrToDelete >= pools[i].pool &&
 				(char*)ptrToDelete <= (pools[i].pool + pools[i].size_in_bytes))
@@ -79,21 +93,15 @@ struct MemArena
 	}
 };
 
-struct SharedMem
-{
-	boost::interprocess::mapped_region mapped_region;
-	char* last_known_addr;
-};
-
 class MemoryManager
 {
 public:
 	static MemoryManager& getInstance();
 
 	template<typename T>
-	T* allocate()
+	inline T* allocate()
 	{
-		for(unsigned i = 0; i < 5; i++)
+		for(unsigned i = 0; i < ARENAS; i++)
 		{
 			if (memory_arenas[i].memory_block_size >= sizeof(T))
 			{
@@ -103,20 +111,25 @@ public:
 			}
 		}
 
+		LOG_INFO_T(__func__, "Could not allocate ptr of type " << typeid(T).name()
+			<< " and size " << sizeof(T));
 		return nullptr;
 	}
 
 	template <typename T>
-	void deallocate(T* ptrToDelete)
+	inline void deallocate(T* ptrToDelete)
 	{
-		for (unsigned i = 0; i < 5; i++)
+		for (unsigned i = 0; i < ARENAS; i++)
 		{
 			if (memory_arenas[i].memory_block_size >= sizeof(T) &&
 				memory_arenas[i].deallocate(ptrToDelete))
 			{
 				return;
 			}
-		}	
+		}
+
+		LOG_INFO_T(__func__, "Could not deallocate ptr 0x" << (uintptr_t)ptrToDelete
+			<< "of type " << typeid(T).name());
 	}
 private:
 	MemoryManager();
@@ -124,59 +137,25 @@ private:
 	MemoryManager(const MemoryManager&) = delete;
 	MemoryManager& operator=(const MemoryManager&) = delete;
 
+	void expandArenas(uint32_t, uint32_t, size_t);
 	void expandSharedMemory();
 	void initSharedMemory();
-
-	void expandArenas(uint32_t begin, uint32_t end, size_t sz)
-	{
-		unsigned size_in_bytes = DEFAULT_NUM_OF_ELEMENTS * sz;
-		for (unsigned i = begin; i < end; i++)
-		{
-			for (unsigned j = 0; j < 3; j++)
-			{
-				memory_arenas[i].pools[j].size_in_bytes = size_in_bytes;
-				memory_arenas[i].pools[j].remaining_blocks = DEFAULT_NUM_OF_ELEMENTS;
-				memory_arenas[i].pools[j].pool = (char *) malloc(memory_arenas[i].pools[j].size_in_bytes);
-				memory_arenas[i].pools[j].free_slot = memory_arenas[i].pools[j].pool;
-
-				memory_arenas[i].memory_block_size = sz;
-				memory_arenas[i].pools_in_use++;
-
-				MemBlock* head = (MemBlock*)(memory_arenas[i].pools[j].pool);
-				for (unsigned k = 0; k < DEFAULT_NUM_OF_ELEMENTS ; k ++)
-				{
-					head->next = (MemBlock*)((char *)head + sz);
-					head = (MemBlock*)head->next;
-				}
-
-				LOG_DEBUG_T(__func__, "Arena [" << i << "].pools[" << j << "] has size of : " << size_in_bytes
-					<< " bytes with " << DEFAULT_NUM_OF_ELEMENTS << " blocks of " << sz << " bytes. Starting address : "
-					<< (uintptr_t)memory_arenas[i].pools[j].pool << " free slot : " << (uintptr_t)memory_arenas[i].pools[j].free_slot
-					<< " and end address : " << (uintptr_t) (memory_arenas[i].pools[j].pool + size_in_bytes) << " .");
-			}
-		}
-
-		LOG_INFO_T(__func__, "Done for arenas [" << begin << " to " << end << ") with full size of : "
-			<< size_in_bytes / 1000 << " kb / "
-			<< size_in_bytes << " bytes and blocks of size : "
-			<< sz);
-	}
 
 	void cleanUp();
 	void removeSharedMemory();
 
 	SharedMem shared_memory_region;
-	MemArena memory_arenas[5];
+	MemArena memory_arenas[ARENAS];
 };
 
 template <typename T>
-static T* allocate()
+static inline T* allocate()
 {
 	return (T*) MemoryManager::getInstance().allocate<T>();
 }
 
 template <typename T>
-static void deallocate(T* ptr)
+static inline void deallocate(T* ptr)
 {
 	MemoryManager::getInstance().deallocate<T>(ptr);
 }
