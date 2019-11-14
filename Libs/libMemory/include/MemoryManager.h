@@ -4,6 +4,14 @@
 #define SHARED_MEMORY "shared_memory"
 #define DEFAULT_NUM_OF_ELEMENTS 10
 
+#ifndef ARENAS
+#define ARENAS 5
+#endif
+
+#ifndef POOLS
+#define POOLS 3
+#endif
+
 #include <sys/types.h>
 #include <utility>
 
@@ -33,34 +41,53 @@ struct MemArena
 {
 	uint32_t pools_in_use;
 	size_t memory_block_size;
-	MemPool pools[3];
+	uint32_t free_slot_pool;
+	MemPool pools[POOLS];
 
 	inline char* allocate(size_t sz)
 	{
-		for (unsigned i = 0; i < 3; i++)
+		if (free_slot_pool >= pools_in_use or
+			pools[free_slot_pool].remaining_blocks == 0)
 		{
-			if (pools[i].remaining_blocks >= 1)
-			{
-				pools[i].remaining_blocks--;
-				char * toReturn = pools[i].free_slot;
-
-				if (pools[i].remaining_blocks == 0)
-				{
-					pools[i].free_slot = nullptr;
-					return toReturn;
-				}
-
-				pools[i].free_slot = (char *) ((MemBlock*)pools[i].free_slot)->next;
-				return toReturn;
-			}
+			return nullptr;
 		}
 
-		return nullptr;
+		char * toReturn = pools[free_slot_pool].free_slot;
+		if ((--pools[free_slot_pool].remaining_blocks) == 0)
+		{
+			pools[free_slot_pool].free_slot = nullptr;
+			free_slot_pool++;
+		}
+		else
+		{
+			pools[free_slot_pool].free_slot = (char *) ((MemBlock*)pools[free_slot_pool].free_slot)->next;
+		}
+		return toReturn;
+
+		// for (unsigned i = 0; i < POOLS; i++)
+		// {
+		// 	if (pools[i].remaining_blocks >= 1)
+		// 	{
+		// 		pools[i].remaining_blocks--;
+		// 		char * toReturn = pools[i].free_slot;
+
+		// 		if (pools[i].remaining_blocks == 0)
+		// 		{
+		// 			pools[i].free_slot = nullptr;
+		// 			return toReturn;
+		// 		}
+
+		// 		pools[i].free_slot = (char *) ((MemBlock*)pools[i].free_slot)->next;
+		// 		return toReturn;
+		// 	}
+		// }
+
+		// return nullptr;
 	}
 
 	inline bool deallocate(void * ptrToDelete)
 	{
-		for (unsigned i = 0; i < 3; i++)
+		for (unsigned i = 0; i < POOLS; i++)
 		{
 			// TODO - try to find a better way for this :/
 			if ((char*)ptrToDelete >= pools[i].pool &&
@@ -75,6 +102,7 @@ struct MemArena
 					((MemBlock*)pools[i].free_slot)->next = nullptr;
 
 				pools[i].remaining_blocks++;
+				free_slot_pool = i;
 				return true;
 			}
 		}
@@ -94,7 +122,7 @@ public:
 	template<typename T>
 	inline T* allocate()
 	{
-		for(unsigned i = 0; i < 5; i++)
+		for(unsigned i = 0; i < ARENAS; i++)
 		{
 			if (memory_arenas[i].memory_block_size >= sizeof(T))
 			{
@@ -103,16 +131,13 @@ public:
 					return p_to_return;
 			}
 		}
-
-		LOG_DEBUG_T(__func__, "Could not allocate ptr of type " << typeid(T).name()
-			<< " and size " << sizeof(T));
 		return nullptr;
 	}
 
 	template <typename T>
 	inline void deallocate(T* ptrToDelete)
 	{
-		for (unsigned i = 0; i < 5; i++)
+		for (unsigned i = 0; i < ARENAS; i++)
 		{
 			if (memory_arenas[i].memory_block_size >= sizeof(T) &&
 				memory_arenas[i].deallocate(ptrToDelete))
@@ -120,9 +145,6 @@ public:
 				return;
 			}
 		}
-
-		LOG_DEBUG_T(__func__, "Could not deallocate ptr 0x" << (uintptr_t)ptrToDelete
-			<< "of type " << typeid(T).name());
 	}
 private:
 	MemoryManager();
@@ -138,7 +160,7 @@ private:
 	void removeSharedMemory();
 
 	SharedMem shared_memory_region;
-	MemArena memory_arenas[5];
+	MemArena memory_arenas[ARENAS];
 };
 
 template <typename T>

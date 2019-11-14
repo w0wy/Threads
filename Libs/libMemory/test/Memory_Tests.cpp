@@ -122,9 +122,9 @@ TEST_F(MemoryManagerTests, ShouldPerformFaster)
 	auto& instance = MemoryManager::getInstance();
 
 	auto t1custom = std::chrono::high_resolution_clock::now();
-	for (unsigned rep = 0; rep < 5; rep++)
+	for (unsigned rep = 0; rep < 10; rep++)
 	{
-		for (unsigned allocs = 0; allocs < 100; allocs++)
+		for (unsigned allocs = 0; allocs < 1000; allocs++)
 		{
 			auto msg = instance.allocate<MessageQueue>();
 			//instance.deallocate(msg);
@@ -135,9 +135,9 @@ TEST_F(MemoryManagerTests, ShouldPerformFaster)
 	auto durationMemManager = std::chrono::duration_cast<std::chrono::nanoseconds>( t2custom - t1custom ).count();
 
 	auto t1new = std::chrono::high_resolution_clock::now();
-	for (unsigned rep = 0; rep < 5; rep++)
+	for (unsigned rep = 0; rep < 10; rep++)
 	{
-		for (unsigned allocs = 0; allocs < 100; allocs++)
+		for (unsigned allocs = 0; allocs < 1000; allocs++)
 		{
 			auto msg = new MessageQueue();
 			//delete msg;

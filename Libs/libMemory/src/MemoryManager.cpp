@@ -31,7 +31,7 @@ void MemoryManager::expandArenas(uint32_t begin, uint32_t end, size_t sz)
 	unsigned size_in_bytes = DEFAULT_NUM_OF_ELEMENTS * sz;
 	for (unsigned i = begin; i < end; i++)
 	{
-		for (unsigned j = 0; j < 3; j++)
+		for (unsigned j = 0; j < POOLS; j++)
 		{
 			memory_arenas[i].pools[j].size_in_bytes = size_in_bytes;
 			memory_arenas[i].pools[j].remaining_blocks = DEFAULT_NUM_OF_ELEMENTS;
@@ -40,6 +40,7 @@ void MemoryManager::expandArenas(uint32_t begin, uint32_t end, size_t sz)
 
 			memory_arenas[i].memory_block_size = sz;
 			memory_arenas[i].pools_in_use++;
+			memory_arenas[i].free_slot_pool = 0;
 
 			MemBlock* head = (MemBlock*)(memory_arenas[i].pools[j].pool);
 			for (unsigned k = 0; k < DEFAULT_NUM_OF_ELEMENTS ; k ++)
@@ -81,9 +82,9 @@ void MemoryManager::expandSharedMemory()
 
 void MemoryManager::initSharedMemory()
 {
-	for (unsigned i = 0; i < 5; i++)
+	for (unsigned i = 0; i < ARENAS; i++)
 	{
-		for (unsigned j = 0; j < 3; j++)
+		for (unsigned j = 0; j < POOLS; j++)
 		{
 			memcpy(shared_memory_region.last_known_addr, memory_arenas[i].pools[j].pool, memory_arenas[i].pools[j].size_in_bytes);
 			shared_memory_region.last_known_addr += memory_arenas[i].pools[j].size_in_bytes;
@@ -105,9 +106,9 @@ void MemoryManager::removeSharedMemory()
 
 void MemoryManager::cleanUp()
 {
-	for (unsigned i = 0; i < 5; i++)
+	for (unsigned i = 0; i < ARENAS; i++)
 	{
-		for (unsigned j = 0; j < 3; j++)
+		for (unsigned j = 0; j < POOLS; j++)
 	 		free(memory_arenas[i].pools[j].pool);
 	}
 

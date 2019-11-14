@@ -37,6 +37,7 @@ void SupervisorDaemon::operator()(char * argv[])
     int argv0size = strlen(argv[0]);
     strncpy(argv[0], "SupervisorDaemon", argv0size);
 
+    MemoryManager::getInstance();
     // int *foo = (int*)-1;
     // printf("%d\n", *foo); // segfault
 
