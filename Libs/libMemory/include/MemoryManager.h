@@ -12,11 +12,21 @@
 #define POOLS 3
 #endif
 
+#ifndef BEGIN_SYM
+#define BEGIN_SYM '#'
+#endif
+
+#ifndef POOL_HEADER
+#define POOL_HEADER 2 * sizeof(char *) + 1
+#endif
+
 #include <sys/types.h>
 #include <utility>
 
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
+
+#include "exceptions/BadAllocException.h"
 
 struct SharedMem
 {
@@ -32,9 +42,15 @@ struct MemBlock
 struct MemPool
 {
 	size_t size_in_bytes;
-	size_t remaining_blocks;
+	uint32_t remaining_blocks;
 	char* pool;
 	char* free_slot;
+};
+
+struct PoolHeader
+{
+	char * arena;
+	char * pool;
 };
 
 struct MemArena
@@ -53,60 +69,58 @@ struct MemArena
 		}
 
 		char * toReturn = pools[free_slot_pool].free_slot;
-		if ((--pools[free_slot_pool].remaining_blocks) == 0)
+		pools[free_slot_pool].remaining_blocks--;
+		if (pools[free_slot_pool].remaining_blocks == 0)
 		{
 			pools[free_slot_pool].free_slot = nullptr;
-			free_slot_pool++;
 		}
 		else
 		{
 			pools[free_slot_pool].free_slot = (char *) ((MemBlock*)pools[free_slot_pool].free_slot)->next;
 		}
+
+		set_free_slot_pool();
 		return toReturn;
-
-		// for (unsigned i = 0; i < POOLS; i++)
-		// {
-		// 	if (pools[i].remaining_blocks >= 1)
-		// 	{
-		// 		pools[i].remaining_blocks--;
-		// 		char * toReturn = pools[i].free_slot;
-
-		// 		if (pools[i].remaining_blocks == 0)
-		// 		{
-		// 			pools[i].free_slot = nullptr;
-		// 			return toReturn;
-		// 		}
-
-		// 		pools[i].free_slot = (char *) ((MemBlock*)pools[i].free_slot)->next;
-		// 		return toReturn;
-		// 	}
-		// }
-
-		// return nullptr;
 	}
 
-	inline bool deallocate(void * ptrToDelete)
+	inline void deallocate(void * ptrToDelete, MemPool* pool)
 	{
-		for (unsigned i = 0; i < POOLS; i++)
-		{
-			// TODO - try to find a better way for this :/
-			if ((char*)ptrToDelete >= pools[i].pool &&
-				(char*)ptrToDelete <= (pools[i].pool + pools[i].size_in_bytes))
-			{
-				char * last_free_slot = pools[i].free_slot;
-				pools[i].free_slot = (char*) ptrToDelete;
-				
-				if (last_free_slot != nullptr)
-					((MemBlock*)pools[i].free_slot)->next = (MemBlock*)last_free_slot;
-				else
-					((MemBlock*)pools[i].free_slot)->next = nullptr;
+		char * last_free_slot = pool->free_slot;
+		pool->free_slot = (char*) ptrToDelete;
 
-				pools[i].remaining_blocks++;
-				free_slot_pool = i;
-				return true;
+		if (last_free_slot != nullptr)
+			((MemBlock*)(pool->free_slot))->next = (MemBlock*)last_free_slot;
+		else
+			((MemBlock*)(pool->free_slot))->next = nullptr;
+
+		pool->remaining_blocks++;
+		if (&pool[0] == pool)
+			free_slot_pool = 0;
+		else
+			if (&pool[1] == pool)
+				free_slot_pool = 1;
+			else
+				if(&pool[2] == pool)
+					free_slot_pool = 2;
+
+		//set_free_slot_pool();
+	}
+
+private:
+	inline void set_free_slot_pool()
+	{
+		bool done = false;
+		for (unsigned cnt = 0; cnt < POOLS; cnt++)
+		{
+			if (pools[cnt].remaining_blocks > 0)
+			{
+				done = true;
+				free_slot_pool = cnt;
+				return;
 			}
 		}
-		return false;
+
+		free_slot_pool = 4;
 	}
 };
 
@@ -124,27 +138,36 @@ public:
 	{
 		for(unsigned i = 0; i < ARENAS; i++)
 		{
-			if (memory_arenas[i].memory_block_size >= sizeof(T))
+			if (memory_arenas[i].memory_block_size >= sizeof(T)
+				and memory_arenas[i].free_slot_pool < 4)
 			{
 				T* p_to_return = (T*) memory_arenas[i].allocate(sizeof(T));
 				if (p_to_return != nullptr)
 					return p_to_return;
 			}
 		}
-		return nullptr;
+		throw BadAllocException("allocate", typeid(T).name(), (uintptr_t)0);
 	}
 
 	template <typename T>
 	inline void deallocate(T* ptrToDelete)
 	{
-		for (unsigned i = 0; i < ARENAS; i++)
+		char * indexer = (char *) ptrToDelete;
+		char b = '#';
+		while (memcmp(indexer, &b, 1) != 0)
 		{
-			if (memory_arenas[i].memory_block_size >= sizeof(T) &&
-				memory_arenas[i].deallocate(ptrToDelete))
-			{
-				return;
-			}
+			--indexer;
 		}
+		PoolHeader* header = (PoolHeader*) (++indexer);
+
+		MemArena * dealloc_arena = (MemArena*)header->arena;
+		MemPool * dealloc_pool = (MemPool*)header->pool;
+
+		if (dealloc_arena == nullptr ||
+			dealloc_pool == nullptr)
+			throw BadAllocException("deallocate", typeid(T).name(), (uintptr_t)ptrToDelete);
+		
+		dealloc_arena->deallocate(ptrToDelete, dealloc_pool);
 	}
 private:
 	MemoryManager();
@@ -166,7 +189,7 @@ private:
 template <typename T>
 static inline T* allocate()
 {
-	return (T*) MemoryManager::getInstance().allocate<T>();
+	return MemoryManager::getInstance().allocate<T>();
 }
 
 template <typename T>

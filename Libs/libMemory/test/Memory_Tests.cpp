@@ -24,43 +24,32 @@ TEST_F(MemoryManagerTests, AllArenasWithAllPoolsShouldBeAvailable)
 {
 	auto& instance = MemoryManager::getInstance();
 
-	MessageQueue* queues[90];
-	Message* messages[60];
+	constexpr unsigned max_number_of_queues = 90;
+	constexpr unsigned max_number_of_messages = 60;
 
-	unsigned counter_for_que = 0;
-	for (unsigned msg_que_arenas = 0; msg_que_arenas < 3; msg_que_arenas++)
+	MessageQueue* queues[max_number_of_queues];
+	Message* messages[max_number_of_messages];
+
+	for (unsigned number_of_queues = 0; number_of_queues < max_number_of_queues; number_of_queues++)
 	{
-		for (unsigned msg_que_pools = 0; msg_que_pools < 3; msg_que_pools++)
-		{
-			for (unsigned msg_que = 0; msg_que < 10; msg_que++)
-			{
-				queues[counter_for_que] = instance.allocate<MessageQueue>();
-				EXPECT_NE(queues[counter_for_que++], nullptr);
-			}
-		}
+		queues[number_of_queues] = instance.allocate<MessageQueue>();
+		EXPECT_NE(queues[number_of_queues], nullptr);
 	}
 
-	unsigned counter_for_message = 0;
-	for (unsigned msg_arenas = 0; msg_arenas < 2; msg_arenas++)
+	for (unsigned number_of_messages = 0; number_of_messages < max_number_of_messages; number_of_messages++)
 	{
-		for (unsigned msg_pools = 0; msg_pools < 3; msg_pools++)
-		{
-			for(unsigned msg = 0; msg < 10; msg++)
-			{
-				messages[counter_for_message] = instance.allocate<Message>();
-				EXPECT_NE(messages[counter_for_message++], nullptr);
-			}
-		}
+		messages[number_of_messages] = instance.allocate<Message>();
+		EXPECT_NE(messages[number_of_messages], nullptr);
 	}
 
-	EXPECT_EQ(instance.allocate<MessageQueue>(), nullptr);
-	EXPECT_EQ(instance.allocate<Message>(), nullptr);
+	EXPECT_THROW(instance.allocate<MessageQueue>(), std::bad_alloc);
+	EXPECT_THROW(instance.allocate<Message>(), std::bad_alloc);
 
 	// need to cleanup arenas for tests. if --gtest_repeat is used,
 	// process will remain => same instance of memory manager
-	for (unsigned count = 0; count < 90; count++)
+	for (unsigned count = 0; count < max_number_of_queues; count++)
 		instance.deallocate(queues[count]);
-	for (unsigned count = 0; count < 60; count++)
+	for (unsigned count = 0; count < max_number_of_messages; count++)
 		instance.deallocate(messages[count]);
 }
 
@@ -121,26 +110,32 @@ TEST_F(MemoryManagerTests, ShouldPerformFaster)
 {
 	auto& instance = MemoryManager::getInstance();
 
+	MessageQueue * messages_allocate[90];
+	unsigned counter_for_allocate = 0;
 	auto t1custom = std::chrono::high_resolution_clock::now();
-	for (unsigned rep = 0; rep < 10; rep++)
+	for (unsigned rep = 0; rep < 9; rep++)
 	{
-		for (unsigned allocs = 0; allocs < 1000; allocs++)
+		for (unsigned allocs = 0; allocs < 10; allocs++)
 		{
-			auto msg = instance.allocate<MessageQueue>();
-			//instance.deallocate(msg);
+			messages_allocate[counter_for_allocate++] = instance.allocate<MessageQueue>();
+			// instance.deallocate(messages_allocate[counter_for_allocate]);
+			// ++counter_for_allocate;
 		}
 	}
 	auto t2custom = std::chrono::high_resolution_clock::now();
 
 	auto durationMemManager = std::chrono::duration_cast<std::chrono::nanoseconds>( t2custom - t1custom ).count();
 
+	MessageQueue * messages_new[90];
+	unsigned counter_for_new = 0;
 	auto t1new = std::chrono::high_resolution_clock::now();
-	for (unsigned rep = 0; rep < 10; rep++)
+	for (unsigned rep = 0; rep < 9; rep++)
 	{
-		for (unsigned allocs = 0; allocs < 1000; allocs++)
+		for (unsigned allocs = 0; allocs < 10; allocs++)
 		{
-			auto msg = new MessageQueue();
-			//delete msg;
+			messages_new[counter_for_new++] = new MessageQueue();
+			// delete messages_new[counter_for_new];
+			// ++counter_for_new;
 		}
 		
 	}
@@ -148,5 +143,27 @@ TEST_F(MemoryManagerTests, ShouldPerformFaster)
 
 	auto durationNew = std::chrono::duration_cast<std::chrono::nanoseconds>( t2new - t1new ).count();
 
-	EXPECT_GT(durationNew, durationMemManager);
+	EXPECT_GT(durationNew, durationMemManager);		
+
+	// delete is faster than deallocate ... bad luck :/
+	// auto t1deletecustom =  std::chrono::high_resolution_clock::now();
+	// for (unsigned i = 0; i < 90; i++)
+	// {
+	// 	instance.deallocate(messages_allocate[i]);
+	// }
+	// auto t2deletecustom =  std::chrono::high_resolution_clock::now();
+
+	// auto durationMemManagerDelete = std::chrono::duration_cast<std::chrono::nanoseconds>( t2deletecustom - t1deletecustom ).count();
+
+	// auto t1delete = std::chrono::high_resolution_clock::now();
+
+	// for (unsigned i = 0; i < 90; i++)
+	// {
+	// 	delete messages_new[i];
+	// }
+
+	// auto t2delete = std::chrono::high_resolution_clock::now();
+
+	// auto durationDelete = std::chrono::duration_cast<std::chrono::nanoseconds>( t2delete - t1delete ).count();
+	// EXPECT_GT(durationDelete, durationMemManagerDelete);
 }

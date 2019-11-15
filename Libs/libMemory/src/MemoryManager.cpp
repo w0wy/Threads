@@ -12,9 +12,8 @@ MemoryManager::MemoryManager()
 	LOG_INFO_T(__func__, " Constructed.");
 
 	expandSharedMemory();
-	expandArenas(0, 2, 64);
-	expandArenas(2, 4, 128);
-	expandArenas(4, 5, 256);
+	expandArenas(0, 3, 40);
+	expandArenas(3, 5, 16);
 	initSharedMemory();
 }
 
@@ -28,26 +27,38 @@ MemoryManager::~MemoryManager()
 
 void MemoryManager::expandArenas(uint32_t begin, uint32_t end, size_t sz)
 {
-	unsigned size_in_bytes = DEFAULT_NUM_OF_ELEMENTS * sz;
+	unsigned size_in_bytes = DEFAULT_NUM_OF_ELEMENTS * sz + 1 + sizeof(PoolHeader);
 	for (unsigned i = begin; i < end; i++)
 	{
+		memory_arenas[i].pools_in_use = 0;
+		memory_arenas[i].memory_block_size = sz;
+		memory_arenas[i].free_slot_pool = 0;
+
 		for (unsigned j = 0; j < POOLS; j++)
 		{
 			memory_arenas[i].pools[j].size_in_bytes = size_in_bytes;
 			memory_arenas[i].pools[j].remaining_blocks = DEFAULT_NUM_OF_ELEMENTS;
 			memory_arenas[i].pools[j].pool = (char *) malloc(memory_arenas[i].pools[j].size_in_bytes);
-			memory_arenas[i].pools[j].free_slot = memory_arenas[i].pools[j].pool;
 
-			memory_arenas[i].memory_block_size = sz;
+			char b = '#';
+			memcpy(memory_arenas[i].pools[j].pool, &b, 1);
+
+			PoolHeader header{(char *)&memory_arenas[i], (char *)&memory_arenas[i].pools[j]};
+
+			char* header_ref_pos = memory_arenas[i].pools[j].pool + 1;
+			memcpy(header_ref_pos, &header, sizeof(PoolHeader));
+
+			memory_arenas[i].pools[j].free_slot = memory_arenas[i].pools[j].pool + sizeof(PoolHeader) + 1;
 			memory_arenas[i].pools_in_use++;
-			memory_arenas[i].free_slot_pool = 0;
 
-			MemBlock* head = (MemBlock*)(memory_arenas[i].pools[j].pool);
+			MemBlock* head = (MemBlock*)(memory_arenas[i].pools[j].free_slot);
 			for (unsigned k = 0; k < DEFAULT_NUM_OF_ELEMENTS ; k ++)
 			{
 				head->next = (MemBlock*)((char *)head + sz);
 				head = (MemBlock*)head->next;
 			}
+
+			//head->next = nullptr;
 
 			LOG_DEBUG_T(__func__, "Arena [" << i << "].pools[" << j << "] has size of : " << size_in_bytes
 				<< " bytes with " << DEFAULT_NUM_OF_ELEMENTS << " blocks of " << sz << " bytes. Starting address : 0x"
