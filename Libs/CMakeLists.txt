@@ -7,7 +7,7 @@ project(Libs VERSION 1.0.0 DESCRIPTION "threads library")
 include(GNUInstallDirs)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lrt -fPIC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -lrt")
 
 set(BOOST_INCLUDEDIR /usr/include/)
 set(BOOST_LIBRARYDIR /usr/lib/)
@@ -62,7 +62,7 @@ target_include_directories(memory PRIVATE
 	libUtils/include/
 	libMemory/include/
 	)
-target_link_libraries(memory utils)
+target_link_libraries(memory rt utils)
 
 if (TEST_MEMORY)
 	add_library(memory-static STATIC
@@ -137,3 +137,4 @@ target_link_libraries(services utils)
 install(TARGETS utils services memory
 	LIBRARY DESTINATION .
 	PUBLIC_HEADER DESTINATION .)
+

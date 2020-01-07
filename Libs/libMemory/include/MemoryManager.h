@@ -199,3 +199,4 @@ static inline void deallocate(T* ptr)
 }
 
 #endif  // MEMORY_MANAGER_H_
+

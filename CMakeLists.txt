@@ -4,10 +4,10 @@ project(Threads)
 add_subdirectory(Libs)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lrt -std=c++14 -rdynamic -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -rdynamic -O3 -lrt")
 
 set(BOOST_INCLUDEDIR /usr/include/)
-#set(BOOST_LIBRARYDIR /usr/lib/)
+set(BOOST_LIBRARYDIR /usr/lib/)
 
 set(BOOST_COMPONENTS system thread date_time filesystem regex)
 find_package(Boost 1.53 REQUIRED ${BOOST_COMPONENTS})
@@ -60,7 +60,8 @@ target_link_libraries(SupervisorDaemon
 	utils
 	services
 	memory
-	xcomm)
+	xcomm
+)
 
 if (TEST_DAEMON)
 	add_library(SupervisorDaemon-static STATIC
